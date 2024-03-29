@@ -35,7 +35,9 @@ impl<'input> Loader<'input> {
                 }
                 Cow::Owned(buffer)
             }
-            Progress::Iterable(_) | Progress::Document(_) => unreachable!(),
+            Progress::Iterable(_) | Progress::Document(_) => {
+                unreachable!()
+            }
             Progress::Fail(err) => return Err(error::shared(err)),
         };
 
@@ -87,7 +89,10 @@ impl<'input> Loader<'input> {
                 YamlEvent::Alias(alias) => match anchors.get(&alias) {
                     Some(id) => Event::Alias(*id),
                     None => {
-                        document.error = Some(error::new(ErrorImpl::UnknownAnchor(mark)).shared());
+                        document.error = Some(
+                            error::new(ErrorImpl::UnknownAnchor(mark))
+                                .shared(),
+                        );
                         return Some(document);
                     }
                 },
@@ -95,7 +100,9 @@ impl<'input> Loader<'input> {
                     if let Some(anchor) = scalar.anchor.take() {
                         let id = anchors.len();
                         anchors.insert(anchor, id);
-                        document.aliases.insert(id, document.events.len());
+                        document
+                            .aliases
+                            .insert(id, document.events.len());
                     }
                     Event::Scalar(scalar)
                 }
@@ -103,7 +110,9 @@ impl<'input> Loader<'input> {
                     if let Some(anchor) = sequence_start.anchor.take() {
                         let id = anchors.len();
                         anchors.insert(anchor, id);
-                        document.aliases.insert(id, document.events.len());
+                        document
+                            .aliases
+                            .insert(id, document.events.len());
                     }
                     Event::SequenceStart(sequence_start)
                 }
@@ -112,7 +121,9 @@ impl<'input> Loader<'input> {
                     if let Some(anchor) = mapping_start.anchor.take() {
                         let id = anchors.len();
                         anchors.insert(anchor, id);
-                        document.aliases.insert(id, document.events.len());
+                        document
+                            .aliases
+                            .insert(id, document.events.len());
                     }
                     Event::MappingStart(mapping_start)
                 }

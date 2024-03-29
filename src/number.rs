@@ -6,7 +6,10 @@
 use crate::de;
 use crate::error::{self, Error, ErrorImpl};
 use serde::de::{Unexpected, Visitor};
-use serde::{forward_to_deserialize_any, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{
+    forward_to_deserialize_any, Deserialize, Deserializer, Serialize,
+    Serializer,
+};
 use std::cmp::Ordering;
 use std::fmt::{self, Display};
 use std::hash::{Hash, Hasher};
@@ -300,8 +303,12 @@ impl Number {
 impl Display for Number {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.n {
-            N::PosInt(i) => formatter.write_str(itoa::Buffer::new().format(i)),
-            N::NegInt(i) => formatter.write_str(itoa::Buffer::new().format(i)),
+            N::PosInt(i) => {
+                formatter.write_str(itoa::Buffer::new().format(i))
+            }
+            N::NegInt(i) => {
+                formatter.write_str(itoa::Buffer::new().format(i))
+            }
             N::Float(f) if f.is_nan() => formatter.write_str(".nan"),
             N::Float(f) if f.is_infinite() => {
                 if f.is_sign_negative() {
@@ -310,7 +317,9 @@ impl Display for Number {
                     formatter.write_str(".inf")
                 }
             }
-            N::Float(f) => formatter.write_str(ryu::Buffer::new().format_finite(f)),
+            N::Float(f) => {
+                formatter.write_str(ryu::Buffer::new().format_finite(f))
+            }
         }
     }
 }
@@ -374,16 +383,18 @@ impl N {
             // negint is always less than zero
             (N::NegInt(_), N::PosInt(_)) => Ordering::Less,
             (N::PosInt(_), N::NegInt(_)) => Ordering::Greater,
-            (N::Float(a), N::Float(b)) => a.partial_cmp(&b).unwrap_or_else(|| {
-                // arbitrarily sort the NaN last
-                if !a.is_nan() {
-                    Ordering::Less
-                } else if !b.is_nan() {
-                    Ordering::Greater
-                } else {
-                    Ordering::Equal
-                }
-            }),
+            (N::Float(a), N::Float(b)) => {
+                a.partial_cmp(&b).unwrap_or_else(|| {
+                    // arbitrarily sort the NaN last
+                    if !a.is_nan() {
+                        Ordering::Less
+                    } else if !b.is_nan() {
+                        Ordering::Greater
+                    } else {
+                        Ordering::Equal
+                    }
+                })
+            }
             // arbitrarily sort integers below floats
             (_, N::Float(_)) => Ordering::Less,
             (N::Float(_), _) => Ordering::Greater,
@@ -416,7 +427,10 @@ struct NumberVisitor;
 impl Visitor<'_> for NumberVisitor {
     type Value = Number;
 
-    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn expecting(
+        &self,
+        formatter: &mut fmt::Formatter<'_>,
+    ) -> fmt::Result {
         formatter.write_str("a number")
     }
 

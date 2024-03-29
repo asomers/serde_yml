@@ -104,7 +104,11 @@ pub(crate) fn shared(shared: Arc<ErrorImpl>) -> Error {
     Error(Box::new(ErrorImpl::Shared(shared)))
 }
 
-pub(crate) fn fix_mark(mut error: Error, mark: libyaml::Mark, path: Path<'_>) -> Error {
+pub(crate) fn fix_mark(
+    mut error: Error,
+    mark: libyaml::Mark,
+    path: Path<'_>,
+) -> Error {
     if let ErrorImpl::Message(_, none @ None) = error.0.as_mut() {
         *none = Some(Pos {
             mark,
@@ -196,7 +200,10 @@ impl ErrorImpl {
         }
     }
 
-    fn message_no_mark(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn message_no_mark(
+        &self,
+        f: &mut fmt::Formatter<'_>,
+    ) -> fmt::Result {
         match self {
             ErrorImpl::Message(msg, None) => f.write_str(msg),
             ErrorImpl::Message(msg, Some(Pos { mark: _, path })) => {
@@ -261,7 +268,10 @@ impl ErrorImpl {
                 f.write_str("Error(")?;
                 struct MessageNoMark<'a>(&'a ErrorImpl);
                 impl Display for MessageNoMark<'_> {
-                    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                    fn fmt(
+                        &self,
+                        f: &mut fmt::Formatter<'_>,
+                    ) -> fmt::Result {
                         self.0.message_no_mark(f)
                     }
                 }

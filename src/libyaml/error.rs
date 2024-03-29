@@ -22,20 +22,28 @@ pub(crate) struct Error {
 }
 
 impl Error {
-    pub unsafe fn parse_error(parser: *const sys::yaml_parser_t) -> Self {
+    pub unsafe fn parse_error(
+        parser: *const sys::yaml_parser_t,
+    ) -> Self {
         Error {
             kind: unsafe { (*parser).error },
-            problem: match NonNull::new(unsafe { (*parser).problem as *mut _ }) {
-                Some(problem) => { CStr::from_ptr(problem) },
-                None => CStr::from_bytes_with_nul(b"libyaml parser failed but there is no error\0"),
+            problem: match NonNull::new(unsafe {
+                (*parser).problem as *mut _
+            }) {
+                Some(problem) => CStr::from_ptr(problem),
+                None => CStr::from_bytes_with_nul(
+                    b"libyaml parser failed but there is no error\0",
+                ),
             },
             problem_offset: unsafe { (*parser).problem_offset },
             problem_mark: Mark {
                 sys: unsafe { (*parser).problem_mark },
             },
             #[allow(clippy::manual_map)]
-            context: match NonNull::new(unsafe { (*parser).context as *mut _ }) {
-                Some(context) => Some( CStr::from_ptr(context) ),
+            context: match NonNull::new(unsafe {
+                (*parser).context as *mut _
+            }) {
+                Some(context) => Some(CStr::from_ptr(context)),
                 None => None,
             },
             context_mark: Mark {
@@ -44,22 +52,32 @@ impl Error {
         }
     }
 
-    pub unsafe fn emit_error(emitter: *const sys::yaml_emitter_t) -> Self {
+    pub unsafe fn emit_error(
+        emitter: *const sys::yaml_emitter_t,
+    ) -> Self {
         Error {
             kind: unsafe { (*emitter).error },
-            problem: match NonNull::new(unsafe { (*emitter).problem as *mut _ }) {
-                Some(problem) => { CStr::from_ptr(problem) },
-                None => {
-                    CStr::from_bytes_with_nul(b"libyaml emitter failed but there is no error\0")
-                }
+            problem: match NonNull::new(unsafe {
+                (*emitter).problem as *mut _
+            }) {
+                Some(problem) => CStr::from_ptr(problem),
+                None => CStr::from_bytes_with_nul(
+                    b"libyaml emitter failed but there is no error\0",
+                ),
             },
             problem_offset: 0,
             problem_mark: Mark {
-                sys: unsafe { MaybeUninit::<sys::yaml_mark_t>::zeroed().assume_init() },
+                sys: unsafe {
+                    MaybeUninit::<sys::yaml_mark_t>::zeroed()
+                        .assume_init()
+                },
             },
             context: None,
             context_mark: Mark {
-                sys: unsafe { MaybeUninit::<sys::yaml_mark_t>::zeroed().assume_init() },
+                sys: unsafe {
+                    MaybeUninit::<sys::yaml_mark_t>::zeroed()
+                        .assume_init()
+                },
             },
         }
     }
@@ -72,16 +90,21 @@ impl Error {
 impl Display for Error {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(formatter, "{}", self.problem)?;
-        if self.problem_mark.sys.line != 0 || self.problem_mark.sys.column != 0 {
+        if self.problem_mark.sys.line != 0
+            || self.problem_mark.sys.column != 0
+        {
             write!(formatter, " at {}", self.problem_mark)?;
         } else if self.problem_offset != 0 {
             write!(formatter, " at position {}", self.problem_offset)?;
         }
         if let Some(context) = &self.context {
             write!(formatter, ", {}", context)?;
-            if (self.context_mark.sys.line != 0 || self.context_mark.sys.column != 0)
-                && (self.context_mark.sys.line != self.problem_mark.sys.line
-                    || self.context_mark.sys.column != self.problem_mark.sys.column)
+            if (self.context_mark.sys.line != 0
+                || self.context_mark.sys.column != 0)
+                && (self.context_mark.sys.line
+                    != self.problem_mark.sys.line
+                    || self.context_mark.sys.column
+                        != self.problem_mark.sys.column)
             {
                 write!(formatter, " at {}", self.context_mark)?;
             }
@@ -106,14 +129,18 @@ impl Debug for Error {
             formatter.field("kind", &format_args!("{}", kind));
         }
         formatter.field("problem", &self.problem);
-        if self.problem_mark.sys.line != 0 || self.problem_mark.sys.column != 0 {
+        if self.problem_mark.sys.line != 0
+            || self.problem_mark.sys.column != 0
+        {
             formatter.field("problem_mark", &self.problem_mark);
         } else if self.problem_offset != 0 {
             formatter.field("problem_offset", &self.problem_offset);
         }
         if let Some(context) = &self.context {
             formatter.field("context", context);
-            if self.context_mark.sys.line != 0 || self.context_mark.sys.column != 0 {
+            if self.context_mark.sys.line != 0
+                || self.context_mark.sys.column != 0
+            {
                 formatter.field("context_mark", &self.context_mark);
             }
         }

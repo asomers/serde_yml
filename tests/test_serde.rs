@@ -20,7 +20,10 @@ use std::iter;
 
 fn test_serde<T>(thing: &T, yaml: &str)
 where
-    T: serde::Serialize + serde::de::DeserializeOwned + PartialEq + Debug,
+    T: serde::Serialize
+        + serde::de::DeserializeOwned
+        + PartialEq
+        + Debug,
 {
     let serialized = serde_yml::to_string(&thing).unwrap();
     assert_eq!(yaml, serialized);
@@ -260,7 +263,8 @@ fn test_string_escapes() {
         "\0\a\b\t\n\v\f\r\e\"\\\N\L\P"
     "#};
     test_serde(
-        &"\0\u{7}\u{8}\t\n\u{b}\u{c}\r\u{1b}\"\\\u{85}\u{2028}\u{2029}".to_owned(),
+        &"\0\u{7}\u{8}\t\n\u{b}\u{c}\r\u{1b}\"\\\u{85}\u{2028}\u{2029}"
+            .to_owned(),
         yaml,
     );
 
@@ -632,7 +636,10 @@ fn test_long_string() {
     }
 
     let thing = Data {
-        string: iter::repeat(["word", " "]).flatten().take(69).collect(),
+        string: iter::repeat(["word", " "])
+            .flatten()
+            .take(69)
+            .collect(),
     };
 
     let yaml = indoc! {"

@@ -18,12 +18,16 @@ impl<T> Owned<T> {
         // FIXME: use Box::new_uninit when stable
         let boxed = Box::new(MaybeUninit::<T>::uninit());
         Owned {
-            ptr: unsafe { NonNull::new_unchecked(Box::into_raw(boxed)) },
+            ptr: unsafe {
+                NonNull::new_unchecked(Box::into_raw(boxed))
+            },
             marker: PhantomData,
         }
     }
 
-    pub unsafe fn assume_init(definitely_init: Owned<MaybeUninit<T>, T>) -> Owned<T> {
+    pub unsafe fn assume_init(
+        definitely_init: Owned<MaybeUninit<T>, T>,
+    ) -> Owned<T> {
         let ptr = definitely_init.ptr;
         mem::forget(definitely_init);
         Owned {

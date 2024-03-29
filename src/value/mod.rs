@@ -189,7 +189,10 @@ impl Value {
     /// index, for example if the index is a string and `self` is a sequence or
     /// a number. Also returns `None` if the given key does not exist in the map
     /// or the given index is not within the bounds of the sequence.
-    pub fn get_mut<I: Index>(&mut self, index: I) -> Option<&mut Value> {
+    pub fn get_mut<I: Index>(
+        &mut self,
+        index: I,
+    ) -> Option<&mut Value> {
         index.index_into_mut(self)
     }
 
@@ -646,14 +649,18 @@ impl Value {
                                 match value {
                                     Value::Mapping(merge) => {
                                         for (k, v) in merge {
-                                            mapping.entry(k).or_insert(v);
+                                            mapping
+                                                .entry(k)
+                                                .or_insert(v);
                                         }
                                     }
                                     Value::Sequence(_) => {
                                         return Err(error::new(ErrorImpl::SequenceInMergeElement));
                                     }
                                     Value::Tagged(_) => {
-                                        return Err(error::new(ErrorImpl::TaggedInMerge));
+                                        return Err(error::new(
+                                            ErrorImpl::TaggedInMerge,
+                                        ));
                                     }
                                     _unexpected => {
                                         return Err(error::new(ErrorImpl::ScalarInMergeElement));
@@ -662,8 +669,16 @@ impl Value {
                             }
                         }
                         None => {}
-                        Some(Value::Tagged(_)) => return Err(error::new(ErrorImpl::TaggedInMerge)),
-                        Some(_unexpected) => return Err(error::new(ErrorImpl::ScalarInMerge)),
+                        Some(Value::Tagged(_)) => {
+                            return Err(error::new(
+                                ErrorImpl::TaggedInMerge,
+                            ))
+                        }
+                        Some(_unexpected) => {
+                            return Err(error::new(
+                                ErrorImpl::ScalarInMerge,
+                            ))
+                        }
                     }
                     stack.extend(mapping.values_mut());
                 }

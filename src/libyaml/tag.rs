@@ -19,8 +19,6 @@ impl Tag {
     pub fn starts_with(&self, prefix: &str) -> bool {
         self.0.starts_with(prefix.as_bytes())
     }
-
-
 }
 
 impl PartialEq<str> for Tag {

@@ -65,13 +65,18 @@ impl Debug for CStr<'_> {
     }
 }
 
-fn display_lossy(mut bytes: &[u8], formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+fn display_lossy(
+    mut bytes: &[u8],
+    formatter: &mut fmt::Formatter<'_>,
+) -> fmt::Result {
     loop {
         match str::from_utf8(bytes) {
             Ok(valid) => return formatter.write_str(valid),
             Err(utf8_error) => {
                 let valid_up_to = utf8_error.valid_up_to();
-                let valid = unsafe { str::from_utf8_unchecked(&bytes[..valid_up_to]) };
+                let valid = unsafe {
+                    str::from_utf8_unchecked(&bytes[..valid_up_to])
+                };
                 formatter.write_str(valid)?;
                 formatter.write_char(char::REPLACEMENT_CHARACTER)?;
                 if let Some(error_len) = utf8_error.error_len() {
@@ -84,7 +89,10 @@ fn display_lossy(mut bytes: &[u8], formatter: &mut fmt::Formatter<'_>) -> fmt::R
     }
 }
 
-pub(crate) fn debug_lossy(mut bytes: &[u8], formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+pub(crate) fn debug_lossy(
+    mut bytes: &[u8],
+    formatter: &mut fmt::Formatter<'_>,
+) -> fmt::Result {
     formatter.write_char('"')?;
 
     while !bytes.is_empty() {
@@ -93,7 +101,9 @@ pub(crate) fn debug_lossy(mut bytes: &[u8], formatter: &mut fmt::Formatter<'_>) 
             Ok(valid) => valid,
             Err(utf8_error) => {
                 let valid_up_to = utf8_error.valid_up_to();
-                unsafe { str::from_utf8_unchecked(&bytes[..valid_up_to]) }
+                unsafe {
+                    str::from_utf8_unchecked(&bytes[..valid_up_to])
+                }
             }
         };
 
@@ -113,11 +123,12 @@ pub(crate) fn debug_lossy(mut bytes: &[u8], formatter: &mut fmt::Formatter<'_>) 
         match from_utf8_result {
             Ok(_valid) => break,
             Err(utf8_error) => {
-                let end_of_broken = if let Some(error_len) = utf8_error.error_len() {
-                    valid.len() + error_len
-                } else {
-                    bytes.len()
-                };
+                let end_of_broken =
+                    if let Some(error_len) = utf8_error.error_len() {
+                        valid.len() + error_len
+                    } else {
+                        bytes.len()
+                    };
                 for b in &bytes[valid.len()..end_of_broken] {
                     write!(formatter, "\\x{:02x}", b)?;
                 }

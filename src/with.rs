@@ -77,11 +77,12 @@
 pub mod singleton_map {
     use crate::value::{Mapping, Sequence, Value};
     use serde::de::{
-        self, Deserialize, DeserializeSeed, Deserializer, EnumAccess, IgnoredAny, MapAccess,
-        Unexpected, VariantAccess, Visitor,
+        self, Deserialize, DeserializeSeed, Deserializer, EnumAccess,
+        IgnoredAny, MapAccess, Unexpected, VariantAccess, Visitor,
     };
     use serde::ser::{
-        self, Serialize, SerializeMap, SerializeStructVariant, SerializeTupleVariant, Serializer,
+        self, Serialize, SerializeMap, SerializeStructVariant,
+        SerializeTupleVariant, Serializer,
     };
     use std::fmt::{self, Display};
 
@@ -97,7 +98,10 @@ pub mod singleton_map {
     /// # Returns
     /// A result containing the serialization output or an error in case of failure.
     ///
-    pub fn serialize<T, S>(value: &T, serializer: S) -> Result<S::Ok, S::Error>
+    pub fn serialize<T, S>(
+        value: &T,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error>
     where
         T: Serialize,
         S: Serializer,
@@ -108,7 +112,9 @@ pub mod singleton_map {
     }
 
     #[allow(missing_docs)]
-    pub fn deserialize<'de, T, D>(deserializer: D) -> Result<T, D::Error>
+    pub fn deserialize<'de, T, D>(
+        deserializer: D,
+    ) -> Result<T, D::Error>
     where
         T: Deserialize<'de>,
         D: Deserializer<'de>,
@@ -146,12 +152,17 @@ pub mod singleton_map {
         type SerializeSeq = D::SerializeSeq;
         type SerializeTuple = D::SerializeTuple;
         type SerializeTupleStruct = D::SerializeTupleStruct;
-        type SerializeTupleVariant = SerializeTupleVariantAsSingletonMap<D::SerializeMap>;
+        type SerializeTupleVariant =
+            SerializeTupleVariantAsSingletonMap<D::SerializeMap>;
         type SerializeMap = D::SerializeMap;
         type SerializeStruct = D::SerializeStruct;
-        type SerializeStructVariant = SerializeStructVariantAsSingletonMap<D::SerializeMap>;
+        type SerializeStructVariant =
+            SerializeStructVariantAsSingletonMap<D::SerializeMap>;
 
-        fn serialize_bool(self, v: bool) -> Result<Self::Ok, Self::Error> {
+        fn serialize_bool(
+            self,
+            v: bool,
+        ) -> Result<Self::Ok, Self::Error> {
             self.delegate.serialize_bool(v)
         }
 
@@ -159,19 +170,31 @@ pub mod singleton_map {
             self.delegate.serialize_i8(v)
         }
 
-        fn serialize_i16(self, v: i16) -> Result<Self::Ok, Self::Error> {
+        fn serialize_i16(
+            self,
+            v: i16,
+        ) -> Result<Self::Ok, Self::Error> {
             self.delegate.serialize_i16(v)
         }
 
-        fn serialize_i32(self, v: i32) -> Result<Self::Ok, Self::Error> {
+        fn serialize_i32(
+            self,
+            v: i32,
+        ) -> Result<Self::Ok, Self::Error> {
             self.delegate.serialize_i32(v)
         }
 
-        fn serialize_i64(self, v: i64) -> Result<Self::Ok, Self::Error> {
+        fn serialize_i64(
+            self,
+            v: i64,
+        ) -> Result<Self::Ok, Self::Error> {
             self.delegate.serialize_i64(v)
         }
 
-        fn serialize_i128(self, v: i128) -> Result<Self::Ok, Self::Error> {
+        fn serialize_i128(
+            self,
+            v: i128,
+        ) -> Result<Self::Ok, Self::Error> {
             self.delegate.serialize_i128(v)
         }
 
@@ -179,39 +202,66 @@ pub mod singleton_map {
             self.delegate.serialize_u8(v)
         }
 
-        fn serialize_u16(self, v: u16) -> Result<Self::Ok, Self::Error> {
+        fn serialize_u16(
+            self,
+            v: u16,
+        ) -> Result<Self::Ok, Self::Error> {
             self.delegate.serialize_u16(v)
         }
 
-        fn serialize_u32(self, v: u32) -> Result<Self::Ok, Self::Error> {
+        fn serialize_u32(
+            self,
+            v: u32,
+        ) -> Result<Self::Ok, Self::Error> {
             self.delegate.serialize_u32(v)
         }
 
-        fn serialize_u64(self, v: u64) -> Result<Self::Ok, Self::Error> {
+        fn serialize_u64(
+            self,
+            v: u64,
+        ) -> Result<Self::Ok, Self::Error> {
             self.delegate.serialize_u64(v)
         }
 
-        fn serialize_u128(self, v: u128) -> Result<Self::Ok, Self::Error> {
+        fn serialize_u128(
+            self,
+            v: u128,
+        ) -> Result<Self::Ok, Self::Error> {
             self.delegate.serialize_u128(v)
         }
 
-        fn serialize_f32(self, v: f32) -> Result<Self::Ok, Self::Error> {
+        fn serialize_f32(
+            self,
+            v: f32,
+        ) -> Result<Self::Ok, Self::Error> {
             self.delegate.serialize_f32(v)
         }
 
-        fn serialize_f64(self, v: f64) -> Result<Self::Ok, Self::Error> {
+        fn serialize_f64(
+            self,
+            v: f64,
+        ) -> Result<Self::Ok, Self::Error> {
             self.delegate.serialize_f64(v)
         }
 
-        fn serialize_char(self, v: char) -> Result<Self::Ok, Self::Error> {
+        fn serialize_char(
+            self,
+            v: char,
+        ) -> Result<Self::Ok, Self::Error> {
             self.delegate.serialize_char(v)
         }
 
-        fn serialize_str(self, v: &str) -> Result<Self::Ok, Self::Error> {
+        fn serialize_str(
+            self,
+            v: &str,
+        ) -> Result<Self::Ok, Self::Error> {
             self.delegate.serialize_str(v)
         }
 
-        fn serialize_bytes(self, v: &[u8]) -> Result<Self::Ok, Self::Error> {
+        fn serialize_bytes(
+            self,
+            v: &[u8],
+        ) -> Result<Self::Ok, Self::Error> {
             self.delegate.serialize_bytes(v)
         }
 
@@ -219,7 +269,10 @@ pub mod singleton_map {
             self.delegate.serialize_unit()
         }
 
-        fn serialize_unit_struct(self, name: &'static str) -> Result<Self::Ok, Self::Error> {
+        fn serialize_unit_struct(
+            self,
+            name: &'static str,
+        ) -> Result<Self::Ok, Self::Error> {
             self.delegate.serialize_unit_struct(name)
         }
 
@@ -229,8 +282,11 @@ pub mod singleton_map {
             variant_index: u32,
             variant: &'static str,
         ) -> Result<Self::Ok, Self::Error> {
-            self.delegate
-                .serialize_unit_variant(name, variant_index, variant)
+            self.delegate.serialize_unit_variant(
+                name,
+                variant_index,
+                variant,
+            )
         }
 
         fn serialize_newtype_struct<T>(
@@ -263,7 +319,10 @@ pub mod singleton_map {
             self.delegate.serialize_none()
         }
 
-        fn serialize_some<V>(self, value: &V) -> Result<Self::Ok, Self::Error>
+        fn serialize_some<V>(
+            self,
+            value: &V,
+        ) -> Result<Self::Ok, Self::Error>
         where
             V: ?Sized + Serialize,
         {
@@ -271,11 +330,17 @@ pub mod singleton_map {
                 .serialize_some(&SingletonMap { delegate: value })
         }
 
-        fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
+        fn serialize_seq(
+            self,
+            len: Option<usize>,
+        ) -> Result<Self::SerializeSeq, Self::Error> {
             self.delegate.serialize_seq(len)
         }
 
-        fn serialize_tuple(self, len: usize) -> Result<Self::SerializeTuple, Self::Error> {
+        fn serialize_tuple(
+            self,
+            len: usize,
+        ) -> Result<Self::SerializeTuple, Self::Error> {
             self.delegate.serialize_tuple(len)
         }
 
@@ -300,7 +365,10 @@ pub mod singleton_map {
             Ok(SerializeTupleVariantAsSingletonMap { map, sequence })
         }
 
-        fn serialize_map(self, len: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
+        fn serialize_map(
+            self,
+            len: Option<usize>,
+        ) -> Result<Self::SerializeMap, Self::Error> {
             self.delegate.serialize_map(len)
         }
 
@@ -325,7 +393,10 @@ pub mod singleton_map {
             Ok(SerializeStructVariantAsSingletonMap { map, mapping })
         }
 
-        fn collect_str<T>(self, value: &T) -> Result<Self::Ok, Self::Error>
+        fn collect_str<T>(
+            self,
+            value: &T,
+        ) -> Result<Self::Ok, Self::Error>
         where
             T: ?Sized + Display,
         {
@@ -349,7 +420,10 @@ pub mod singleton_map {
         type Ok = M::Ok;
         type Error = M::Error;
 
-        fn serialize_field<T>(&mut self, field: &T) -> Result<(), Self::Error>
+        fn serialize_field<T>(
+            &mut self,
+            field: &T,
+        ) -> Result<(), Self::Error>
         where
             T: ?Sized + Serialize,
         {
@@ -371,14 +445,19 @@ pub mod singleton_map {
         mapping: Mapping,
     }
 
-    impl<M> SerializeStructVariant for SerializeStructVariantAsSingletonMap<M>
+    impl<M> SerializeStructVariant
+        for SerializeStructVariantAsSingletonMap<M>
     where
         M: SerializeMap,
     {
         type Ok = M::Ok;
         type Error = M::Error;
 
-        fn serialize_field<T>(&mut self, name: &'static str, field: &T) -> Result<(), Self::Error>
+        fn serialize_field<T>(
+            &mut self,
+            name: &'static str,
+            field: &T,
+        ) -> Result<(), Self::Error>
         where
             T: ?Sized + Serialize,
         {
@@ -401,140 +480,200 @@ pub mod singleton_map {
     {
         type Error = D::Error;
 
-        fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_any<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
             self.delegate.deserialize_any(visitor)
         }
 
-        fn deserialize_bool<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_bool<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
             self.delegate.deserialize_bool(visitor)
         }
 
-        fn deserialize_i8<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_i8<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
             self.delegate.deserialize_i8(visitor)
         }
 
-        fn deserialize_i16<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_i16<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
             self.delegate.deserialize_i16(visitor)
         }
 
-        fn deserialize_i32<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_i32<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
             self.delegate.deserialize_i32(visitor)
         }
 
-        fn deserialize_i64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_i64<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
             self.delegate.deserialize_i64(visitor)
         }
 
-        fn deserialize_i128<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_i128<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
             self.delegate.deserialize_i128(visitor)
         }
 
-        fn deserialize_u8<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_u8<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
             self.delegate.deserialize_u8(visitor)
         }
 
-        fn deserialize_u16<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_u16<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
             self.delegate.deserialize_u16(visitor)
         }
 
-        fn deserialize_u32<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_u32<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
             self.delegate.deserialize_u32(visitor)
         }
 
-        fn deserialize_u64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_u64<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
             self.delegate.deserialize_u64(visitor)
         }
 
-        fn deserialize_u128<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_u128<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
             self.delegate.deserialize_u128(visitor)
         }
 
-        fn deserialize_f32<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_f32<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
             self.delegate.deserialize_f32(visitor)
         }
 
-        fn deserialize_f64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_f64<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
             self.delegate.deserialize_f64(visitor)
         }
 
-        fn deserialize_char<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_char<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
             self.delegate.deserialize_char(visitor)
         }
 
-        fn deserialize_str<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_str<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
             self.delegate.deserialize_str(visitor)
         }
 
-        fn deserialize_string<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_string<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
             self.delegate.deserialize_string(visitor)
         }
 
-        fn deserialize_bytes<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_bytes<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
             self.delegate.deserialize_bytes(visitor)
         }
 
-        fn deserialize_byte_buf<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_byte_buf<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
             self.delegate.deserialize_byte_buf(visitor)
         }
 
-        fn deserialize_option<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_option<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
@@ -544,7 +683,10 @@ pub mod singleton_map {
             })
         }
 
-        fn deserialize_unit<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_unit<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
@@ -573,14 +715,21 @@ pub mod singleton_map {
             self.delegate.deserialize_newtype_struct(name, visitor)
         }
 
-        fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_seq<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
             self.delegate.deserialize_seq(visitor)
         }
 
-        fn deserialize_tuple<V>(self, len: usize, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_tuple<V>(
+            self,
+            len: usize,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
@@ -599,7 +748,10 @@ pub mod singleton_map {
             self.delegate.deserialize_tuple_struct(name, len, visitor)
         }
 
-        fn deserialize_map<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_map<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
@@ -633,14 +785,20 @@ pub mod singleton_map {
             })
         }
 
-        fn deserialize_identifier<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_identifier<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
             self.delegate.deserialize_identifier(visitor)
         }
 
-        fn deserialize_ignored_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_ignored_any<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
@@ -663,7 +821,10 @@ pub mod singleton_map {
     {
         type Value = V::Value;
 
-        fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fn expecting(
+            &self,
+            formatter: &mut fmt::Formatter<'_>,
+        ) -> fmt::Result {
             self.delegate.expecting(formatter)
         }
 
@@ -674,7 +835,10 @@ pub mod singleton_map {
             self.delegate.visit_enum(de::value::StrDeserializer::new(v))
         }
 
-        fn visit_borrowed_str<E>(self, v: &'de str) -> Result<Self::Value, E>
+        fn visit_borrowed_str<E>(
+            self,
+            v: &'de str,
+        ) -> Result<Self::Value, E>
         where
             E: de::Error,
         {
@@ -697,7 +861,10 @@ pub mod singleton_map {
             self.delegate.visit_none()
         }
 
-        fn visit_some<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+        fn visit_some<D>(
+            self,
+            deserializer: D,
+        ) -> Result<Self::Value, D::Error>
         where
             D: Deserializer<'de>,
         {
@@ -731,7 +898,10 @@ pub mod singleton_map {
         type Error = D::Error;
         type Variant = Self;
 
-        fn variant_seed<V>(mut self, seed: V) -> Result<(V::Value, Self::Variant), Self::Error>
+        fn variant_seed<V>(
+            mut self,
+            seed: V,
+        ) -> Result<(V::Value, Self::Variant), Self::Error>
         where
             V: DeserializeSeed<'de>,
         {
@@ -752,10 +922,16 @@ pub mod singleton_map {
         type Error = D::Error;
 
         fn unit_variant(self) -> Result<(), Self::Error> {
-            Err(de::Error::invalid_type(Unexpected::Map, &"unit variant"))
+            Err(de::Error::invalid_type(
+                Unexpected::Map,
+                &"unit variant",
+            ))
         }
 
-        fn newtype_variant_seed<T>(mut self, seed: T) -> Result<T::Value, Self::Error>
+        fn newtype_variant_seed<T>(
+            mut self,
+            seed: T,
+        ) -> Result<T::Value, Self::Error>
         where
             T: DeserializeSeed<'de>,
         {
@@ -769,7 +945,11 @@ pub mod singleton_map {
             }
         }
 
-        fn tuple_variant<V>(mut self, len: usize, visitor: V) -> Result<V::Value, Self::Error>
+        fn tuple_variant<V>(
+            mut self,
+            len: usize,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
@@ -793,11 +973,12 @@ pub mod singleton_map {
         where
             V: Visitor<'de>,
         {
-            let value = self.delegate.next_value_seed(StructVariantSeed {
-                name: self.name,
-                fields,
-                visitor,
-            })?;
+            let value =
+                self.delegate.next_value_seed(StructVariantSeed {
+                    name: self.name,
+                    fields,
+                    visitor,
+                })?;
             match self.delegate.next_key()? {
                 None => Ok(value),
                 Some(IgnoredAny) => Err(de::Error::invalid_value(
@@ -819,7 +1000,10 @@ pub mod singleton_map {
     {
         type Value = V::Value;
 
-        fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+        fn deserialize<D>(
+            self,
+            deserializer: D,
+        ) -> Result<Self::Value, D::Error>
         where
             D: Deserializer<'de>,
         {
@@ -839,11 +1023,18 @@ pub mod singleton_map {
     {
         type Value = V::Value;
 
-        fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+        fn deserialize<D>(
+            self,
+            deserializer: D,
+        ) -> Result<Self::Value, D::Error>
         where
             D: Deserializer<'de>,
         {
-            deserializer.deserialize_struct(self.name, self.fields, self.visitor)
+            deserializer.deserialize_struct(
+                self.name,
+                self.fields,
+                self.visitor,
+            )
         }
     }
 }
@@ -944,17 +1135,22 @@ pub mod singleton_map {
 pub mod singleton_map_recursive {
     use crate::value::{Mapping, Sequence, Value};
     use serde::de::{
-        self, Deserialize, DeserializeSeed, Deserializer, EnumAccess, IgnoredAny, MapAccess,
-        SeqAccess, Unexpected, VariantAccess, Visitor,
+        self, Deserialize, DeserializeSeed, Deserializer, EnumAccess,
+        IgnoredAny, MapAccess, SeqAccess, Unexpected, VariantAccess,
+        Visitor,
     };
     use serde::ser::{
-        self, Serialize, SerializeMap, SerializeSeq, SerializeStruct, SerializeStructVariant,
-        SerializeTuple, SerializeTupleStruct, SerializeTupleVariant, Serializer,
+        self, Serialize, SerializeMap, SerializeSeq, SerializeStruct,
+        SerializeStructVariant, SerializeTuple, SerializeTupleStruct,
+        SerializeTupleVariant, Serializer,
     };
     use std::fmt::{self, Display};
 
     #[allow(missing_docs)]
-    pub fn serialize<T, S>(value: &T, serializer: S) -> Result<S::Ok, S::Error>
+    pub fn serialize<T, S>(
+        value: &T,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error>
     where
         T: Serialize,
         S: Serializer,
@@ -965,7 +1161,9 @@ pub mod singleton_map_recursive {
     }
 
     #[allow(missing_docs)]
-    pub fn deserialize<'de, T, D>(deserializer: D) -> Result<T, D::Error>
+    pub fn deserialize<'de, T, D>(
+        deserializer: D,
+    ) -> Result<T, D::Error>
     where
         T: Deserialize<'de>,
         D: Deserializer<'de>,
@@ -1002,14 +1200,24 @@ pub mod singleton_map_recursive {
 
         type SerializeSeq = SingletonMapRecursive<D::SerializeSeq>;
         type SerializeTuple = SingletonMapRecursive<D::SerializeTuple>;
-        type SerializeTupleStruct = SingletonMapRecursive<D::SerializeTupleStruct>;
-        type SerializeTupleVariant = SerializeTupleVariantAsSingletonMapRecursive<D::SerializeMap>;
+        type SerializeTupleStruct =
+            SingletonMapRecursive<D::SerializeTupleStruct>;
+        type SerializeTupleVariant =
+            SerializeTupleVariantAsSingletonMapRecursive<
+                D::SerializeMap,
+            >;
         type SerializeMap = SingletonMapRecursive<D::SerializeMap>;
-        type SerializeStruct = SingletonMapRecursive<D::SerializeStruct>;
+        type SerializeStruct =
+            SingletonMapRecursive<D::SerializeStruct>;
         type SerializeStructVariant =
-            SerializeStructVariantAsSingletonMapRecursive<D::SerializeMap>;
+            SerializeStructVariantAsSingletonMapRecursive<
+                D::SerializeMap,
+            >;
 
-        fn serialize_bool(self, v: bool) -> Result<Self::Ok, Self::Error> {
+        fn serialize_bool(
+            self,
+            v: bool,
+        ) -> Result<Self::Ok, Self::Error> {
             self.delegate.serialize_bool(v)
         }
 
@@ -1017,19 +1225,31 @@ pub mod singleton_map_recursive {
             self.delegate.serialize_i8(v)
         }
 
-        fn serialize_i16(self, v: i16) -> Result<Self::Ok, Self::Error> {
+        fn serialize_i16(
+            self,
+            v: i16,
+        ) -> Result<Self::Ok, Self::Error> {
             self.delegate.serialize_i16(v)
         }
 
-        fn serialize_i32(self, v: i32) -> Result<Self::Ok, Self::Error> {
+        fn serialize_i32(
+            self,
+            v: i32,
+        ) -> Result<Self::Ok, Self::Error> {
             self.delegate.serialize_i32(v)
         }
 
-        fn serialize_i64(self, v: i64) -> Result<Self::Ok, Self::Error> {
+        fn serialize_i64(
+            self,
+            v: i64,
+        ) -> Result<Self::Ok, Self::Error> {
             self.delegate.serialize_i64(v)
         }
 
-        fn serialize_i128(self, v: i128) -> Result<Self::Ok, Self::Error> {
+        fn serialize_i128(
+            self,
+            v: i128,
+        ) -> Result<Self::Ok, Self::Error> {
             self.delegate.serialize_i128(v)
         }
 
@@ -1037,39 +1257,66 @@ pub mod singleton_map_recursive {
             self.delegate.serialize_u8(v)
         }
 
-        fn serialize_u16(self, v: u16) -> Result<Self::Ok, Self::Error> {
+        fn serialize_u16(
+            self,
+            v: u16,
+        ) -> Result<Self::Ok, Self::Error> {
             self.delegate.serialize_u16(v)
         }
 
-        fn serialize_u32(self, v: u32) -> Result<Self::Ok, Self::Error> {
+        fn serialize_u32(
+            self,
+            v: u32,
+        ) -> Result<Self::Ok, Self::Error> {
             self.delegate.serialize_u32(v)
         }
 
-        fn serialize_u64(self, v: u64) -> Result<Self::Ok, Self::Error> {
+        fn serialize_u64(
+            self,
+            v: u64,
+        ) -> Result<Self::Ok, Self::Error> {
             self.delegate.serialize_u64(v)
         }
 
-        fn serialize_u128(self, v: u128) -> Result<Self::Ok, Self::Error> {
+        fn serialize_u128(
+            self,
+            v: u128,
+        ) -> Result<Self::Ok, Self::Error> {
             self.delegate.serialize_u128(v)
         }
 
-        fn serialize_f32(self, v: f32) -> Result<Self::Ok, Self::Error> {
+        fn serialize_f32(
+            self,
+            v: f32,
+        ) -> Result<Self::Ok, Self::Error> {
             self.delegate.serialize_f32(v)
         }
 
-        fn serialize_f64(self, v: f64) -> Result<Self::Ok, Self::Error> {
+        fn serialize_f64(
+            self,
+            v: f64,
+        ) -> Result<Self::Ok, Self::Error> {
             self.delegate.serialize_f64(v)
         }
 
-        fn serialize_char(self, v: char) -> Result<Self::Ok, Self::Error> {
+        fn serialize_char(
+            self,
+            v: char,
+        ) -> Result<Self::Ok, Self::Error> {
             self.delegate.serialize_char(v)
         }
 
-        fn serialize_str(self, v: &str) -> Result<Self::Ok, Self::Error> {
+        fn serialize_str(
+            self,
+            v: &str,
+        ) -> Result<Self::Ok, Self::Error> {
             self.delegate.serialize_str(v)
         }
 
-        fn serialize_bytes(self, v: &[u8]) -> Result<Self::Ok, Self::Error> {
+        fn serialize_bytes(
+            self,
+            v: &[u8],
+        ) -> Result<Self::Ok, Self::Error> {
             self.delegate.serialize_bytes(v)
         }
 
@@ -1077,7 +1324,10 @@ pub mod singleton_map_recursive {
             self.delegate.serialize_unit()
         }
 
-        fn serialize_unit_struct(self, name: &'static str) -> Result<Self::Ok, Self::Error> {
+        fn serialize_unit_struct(
+            self,
+            name: &'static str,
+        ) -> Result<Self::Ok, Self::Error> {
             self.delegate.serialize_unit_struct(name)
         }
 
@@ -1087,8 +1337,11 @@ pub mod singleton_map_recursive {
             variant_index: u32,
             variant: &'static str,
         ) -> Result<Self::Ok, Self::Error> {
-            self.delegate
-                .serialize_unit_variant(name, variant_index, variant)
+            self.delegate.serialize_unit_variant(
+                name,
+                variant_index,
+                variant,
+            )
         }
 
         fn serialize_newtype_struct<T>(
@@ -1099,8 +1352,10 @@ pub mod singleton_map_recursive {
         where
             T: ?Sized + Serialize,
         {
-            self.delegate
-                .serialize_newtype_struct(name, &SingletonMapRecursive { delegate: value })
+            self.delegate.serialize_newtype_struct(
+                name,
+                &SingletonMapRecursive { delegate: value },
+            )
         }
 
         fn serialize_newtype_variant<T>(
@@ -1114,7 +1369,10 @@ pub mod singleton_map_recursive {
             T: ?Sized + Serialize,
         {
             let mut map = self.delegate.serialize_map(Some(1))?;
-            map.serialize_entry(variant, &SingletonMapRecursive { delegate: value })?;
+            map.serialize_entry(
+                variant,
+                &SingletonMapRecursive { delegate: value },
+            )?;
             map.end()
         }
 
@@ -1122,21 +1380,31 @@ pub mod singleton_map_recursive {
             self.delegate.serialize_none()
         }
 
-        fn serialize_some<V>(self, value: &V) -> Result<Self::Ok, Self::Error>
+        fn serialize_some<V>(
+            self,
+            value: &V,
+        ) -> Result<Self::Ok, Self::Error>
         where
             V: ?Sized + Serialize,
         {
-            self.delegate
-                .serialize_some(&SingletonMapRecursive { delegate: value })
+            self.delegate.serialize_some(&SingletonMapRecursive {
+                delegate: value,
+            })
         }
 
-        fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
+        fn serialize_seq(
+            self,
+            len: Option<usize>,
+        ) -> Result<Self::SerializeSeq, Self::Error> {
             Ok(SingletonMapRecursive {
                 delegate: self.delegate.serialize_seq(len)?,
             })
         }
 
-        fn serialize_tuple(self, len: usize) -> Result<Self::SerializeTuple, Self::Error> {
+        fn serialize_tuple(
+            self,
+            len: usize,
+        ) -> Result<Self::SerializeTuple, Self::Error> {
             Ok(SingletonMapRecursive {
                 delegate: self.delegate.serialize_tuple(len)?,
             })
@@ -1148,7 +1416,9 @@ pub mod singleton_map_recursive {
             len: usize,
         ) -> Result<Self::SerializeTupleStruct, Self::Error> {
             Ok(SingletonMapRecursive {
-                delegate: self.delegate.serialize_tuple_struct(name, len)?,
+                delegate: self
+                    .delegate
+                    .serialize_tuple_struct(name, len)?,
             })
         }
 
@@ -1162,10 +1432,16 @@ pub mod singleton_map_recursive {
             let mut map = self.delegate.serialize_map(Some(1))?;
             map.serialize_key(variant)?;
             let sequence = Sequence::with_capacity(len);
-            Ok(SerializeTupleVariantAsSingletonMapRecursive { map, sequence })
+            Ok(SerializeTupleVariantAsSingletonMapRecursive {
+                map,
+                sequence,
+            })
         }
 
-        fn serialize_map(self, len: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
+        fn serialize_map(
+            self,
+            len: Option<usize>,
+        ) -> Result<Self::SerializeMap, Self::Error> {
             Ok(SingletonMapRecursive {
                 delegate: self.delegate.serialize_map(len)?,
             })
@@ -1191,10 +1467,16 @@ pub mod singleton_map_recursive {
             let mut map = self.delegate.serialize_map(Some(1))?;
             map.serialize_key(variant)?;
             let mapping = Mapping::with_capacity(len);
-            Ok(SerializeStructVariantAsSingletonMapRecursive { map, mapping })
+            Ok(SerializeStructVariantAsSingletonMapRecursive {
+                map,
+                mapping,
+            })
         }
 
-        fn collect_str<T>(self, value: &T) -> Result<Self::Ok, Self::Error>
+        fn collect_str<T>(
+            self,
+            value: &T,
+        ) -> Result<Self::Ok, Self::Error>
         where
             T: ?Sized + Display,
         {
@@ -1213,12 +1495,16 @@ pub mod singleton_map_recursive {
         type Ok = D::Ok;
         type Error = D::Error;
 
-        fn serialize_element<T>(&mut self, elem: &T) -> Result<(), Self::Error>
+        fn serialize_element<T>(
+            &mut self,
+            elem: &T,
+        ) -> Result<(), Self::Error>
         where
             T: ?Sized + Serialize,
         {
-            self.delegate
-                .serialize_element(&SingletonMapRecursive { delegate: elem })
+            self.delegate.serialize_element(&SingletonMapRecursive {
+                delegate: elem,
+            })
         }
 
         fn end(self) -> Result<Self::Ok, Self::Error> {
@@ -1233,12 +1519,16 @@ pub mod singleton_map_recursive {
         type Ok = D::Ok;
         type Error = D::Error;
 
-        fn serialize_element<T>(&mut self, elem: &T) -> Result<(), Self::Error>
+        fn serialize_element<T>(
+            &mut self,
+            elem: &T,
+        ) -> Result<(), Self::Error>
         where
             T: ?Sized + Serialize,
         {
-            self.delegate
-                .serialize_element(&SingletonMapRecursive { delegate: elem })
+            self.delegate.serialize_element(&SingletonMapRecursive {
+                delegate: elem,
+            })
         }
 
         fn end(self) -> Result<Self::Ok, Self::Error> {
@@ -1253,12 +1543,16 @@ pub mod singleton_map_recursive {
         type Ok = D::Ok;
         type Error = D::Error;
 
-        fn serialize_field<V>(&mut self, value: &V) -> Result<(), Self::Error>
+        fn serialize_field<V>(
+            &mut self,
+            value: &V,
+        ) -> Result<(), Self::Error>
         where
             V: ?Sized + Serialize,
         {
-            self.delegate
-                .serialize_field(&SingletonMapRecursive { delegate: value })
+            self.delegate.serialize_field(&SingletonMapRecursive {
+                delegate: value,
+            })
         }
 
         fn end(self) -> Result<Self::Ok, Self::Error> {
@@ -1271,14 +1565,18 @@ pub mod singleton_map_recursive {
         sequence: Sequence,
     }
 
-    impl<M> SerializeTupleVariant for SerializeTupleVariantAsSingletonMapRecursive<M>
+    impl<M> SerializeTupleVariant
+        for SerializeTupleVariantAsSingletonMapRecursive<M>
     where
         M: SerializeMap,
     {
         type Ok = M::Ok;
         type Error = M::Error;
 
-        fn serialize_field<T>(&mut self, field: &T) -> Result<(), Self::Error>
+        fn serialize_field<T>(
+            &mut self,
+            field: &T,
+        ) -> Result<(), Self::Error>
         where
             T: ?Sized + Serialize,
         {
@@ -1304,7 +1602,10 @@ pub mod singleton_map_recursive {
         type Ok = D::Ok;
         type Error = D::Error;
 
-        fn serialize_key<T>(&mut self, key: &T) -> Result<(), Self::Error>
+        fn serialize_key<T>(
+            &mut self,
+            key: &T,
+        ) -> Result<(), Self::Error>
         where
             T: ?Sized + Serialize,
         {
@@ -1312,15 +1613,23 @@ pub mod singleton_map_recursive {
                 .serialize_key(&SingletonMapRecursive { delegate: key })
         }
 
-        fn serialize_value<T>(&mut self, value: &T) -> Result<(), Self::Error>
+        fn serialize_value<T>(
+            &mut self,
+            value: &T,
+        ) -> Result<(), Self::Error>
         where
             T: ?Sized + Serialize,
         {
-            self.delegate
-                .serialize_value(&SingletonMapRecursive { delegate: value })
+            self.delegate.serialize_value(&SingletonMapRecursive {
+                delegate: value,
+            })
         }
 
-        fn serialize_entry<K, V>(&mut self, key: &K, value: &V) -> Result<(), Self::Error>
+        fn serialize_entry<K, V>(
+            &mut self,
+            key: &K,
+            value: &V,
+        ) -> Result<(), Self::Error>
         where
             K: ?Sized + Serialize,
             V: ?Sized + Serialize,
@@ -1343,12 +1652,18 @@ pub mod singleton_map_recursive {
         type Ok = D::Ok;
         type Error = D::Error;
 
-        fn serialize_field<V>(&mut self, key: &'static str, value: &V) -> Result<(), Self::Error>
+        fn serialize_field<V>(
+            &mut self,
+            key: &'static str,
+            value: &V,
+        ) -> Result<(), Self::Error>
         where
             V: ?Sized + Serialize,
         {
-            self.delegate
-                .serialize_field(key, &SingletonMapRecursive { delegate: value })
+            self.delegate.serialize_field(
+                key,
+                &SingletonMapRecursive { delegate: value },
+            )
         }
 
         fn end(self) -> Result<Self::Ok, Self::Error> {
@@ -1361,14 +1676,19 @@ pub mod singleton_map_recursive {
         mapping: Mapping,
     }
 
-    impl<M> SerializeStructVariant for SerializeStructVariantAsSingletonMapRecursive<M>
+    impl<M> SerializeStructVariant
+        for SerializeStructVariantAsSingletonMapRecursive<M>
     where
         M: SerializeMap,
     {
         type Ok = M::Ok;
         type Error = M::Error;
 
-        fn serialize_field<T>(&mut self, name: &'static str, field: &T) -> Result<(), Self::Error>
+        fn serialize_field<T>(
+            &mut self,
+            name: &'static str,
+            field: &T,
+        ) -> Result<(), Self::Error>
         where
             T: ?Sized + Serialize,
         {
@@ -1393,175 +1713,259 @@ pub mod singleton_map_recursive {
     {
         type Error = D::Error;
 
-        fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_any<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
-            self.delegate
-                .deserialize_any(SingletonMapRecursive { delegate: visitor })
+            self.delegate.deserialize_any(SingletonMapRecursive {
+                delegate: visitor,
+            })
         }
 
-        fn deserialize_bool<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_bool<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
-            self.delegate
-                .deserialize_bool(SingletonMapRecursive { delegate: visitor })
+            self.delegate.deserialize_bool(SingletonMapRecursive {
+                delegate: visitor,
+            })
         }
 
-        fn deserialize_i8<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_i8<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
-            self.delegate
-                .deserialize_i8(SingletonMapRecursive { delegate: visitor })
+            self.delegate.deserialize_i8(SingletonMapRecursive {
+                delegate: visitor,
+            })
         }
 
-        fn deserialize_i16<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_i16<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
-            self.delegate
-                .deserialize_i16(SingletonMapRecursive { delegate: visitor })
+            self.delegate.deserialize_i16(SingletonMapRecursive {
+                delegate: visitor,
+            })
         }
 
-        fn deserialize_i32<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_i32<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
-            self.delegate
-                .deserialize_i32(SingletonMapRecursive { delegate: visitor })
+            self.delegate.deserialize_i32(SingletonMapRecursive {
+                delegate: visitor,
+            })
         }
 
-        fn deserialize_i64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_i64<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
-            self.delegate
-                .deserialize_i64(SingletonMapRecursive { delegate: visitor })
+            self.delegate.deserialize_i64(SingletonMapRecursive {
+                delegate: visitor,
+            })
         }
 
-        fn deserialize_i128<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_i128<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
-            self.delegate
-                .deserialize_i128(SingletonMapRecursive { delegate: visitor })
+            self.delegate.deserialize_i128(SingletonMapRecursive {
+                delegate: visitor,
+            })
         }
 
-        fn deserialize_u8<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_u8<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
-            self.delegate
-                .deserialize_u8(SingletonMapRecursive { delegate: visitor })
+            self.delegate.deserialize_u8(SingletonMapRecursive {
+                delegate: visitor,
+            })
         }
 
-        fn deserialize_u16<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_u16<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
-            self.delegate
-                .deserialize_u16(SingletonMapRecursive { delegate: visitor })
+            self.delegate.deserialize_u16(SingletonMapRecursive {
+                delegate: visitor,
+            })
         }
 
-        fn deserialize_u32<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_u32<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
-            self.delegate
-                .deserialize_u32(SingletonMapRecursive { delegate: visitor })
+            self.delegate.deserialize_u32(SingletonMapRecursive {
+                delegate: visitor,
+            })
         }
 
-        fn deserialize_u64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_u64<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
-            self.delegate
-                .deserialize_u64(SingletonMapRecursive { delegate: visitor })
+            self.delegate.deserialize_u64(SingletonMapRecursive {
+                delegate: visitor,
+            })
         }
 
-        fn deserialize_u128<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_u128<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
-            self.delegate
-                .deserialize_u128(SingletonMapRecursive { delegate: visitor })
+            self.delegate.deserialize_u128(SingletonMapRecursive {
+                delegate: visitor,
+            })
         }
 
-        fn deserialize_f32<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_f32<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
-            self.delegate
-                .deserialize_f32(SingletonMapRecursive { delegate: visitor })
+            self.delegate.deserialize_f32(SingletonMapRecursive {
+                delegate: visitor,
+            })
         }
 
-        fn deserialize_f64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_f64<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
-            self.delegate
-                .deserialize_f64(SingletonMapRecursive { delegate: visitor })
+            self.delegate.deserialize_f64(SingletonMapRecursive {
+                delegate: visitor,
+            })
         }
 
-        fn deserialize_char<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_char<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
-            self.delegate
-                .deserialize_char(SingletonMapRecursive { delegate: visitor })
+            self.delegate.deserialize_char(SingletonMapRecursive {
+                delegate: visitor,
+            })
         }
 
-        fn deserialize_str<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_str<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
-            self.delegate
-                .deserialize_str(SingletonMapRecursive { delegate: visitor })
+            self.delegate.deserialize_str(SingletonMapRecursive {
+                delegate: visitor,
+            })
         }
 
-        fn deserialize_string<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_string<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
-            self.delegate
-                .deserialize_string(SingletonMapRecursive { delegate: visitor })
+            self.delegate.deserialize_string(SingletonMapRecursive {
+                delegate: visitor,
+            })
         }
 
-        fn deserialize_bytes<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_bytes<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
-            self.delegate
-                .deserialize_bytes(SingletonMapRecursive { delegate: visitor })
+            self.delegate.deserialize_bytes(SingletonMapRecursive {
+                delegate: visitor,
+            })
         }
 
-        fn deserialize_byte_buf<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_byte_buf<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
-            self.delegate
-                .deserialize_byte_buf(SingletonMapRecursive { delegate: visitor })
+            self.delegate.deserialize_byte_buf(SingletonMapRecursive {
+                delegate: visitor,
+            })
         }
 
-        fn deserialize_option<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_option<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
-            self.delegate
-                .deserialize_option(SingletonMapRecursiveAsEnum {
+            self.delegate.deserialize_option(
+                SingletonMapRecursiveAsEnum {
                     name: "",
                     delegate: visitor,
-                })
+                },
+            )
         }
 
-        fn deserialize_unit<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_unit<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
-            self.delegate
-                .deserialize_unit(SingletonMapRecursive { delegate: visitor })
+            self.delegate.deserialize_unit(SingletonMapRecursive {
+                delegate: visitor,
+            })
         }
 
         fn deserialize_unit_struct<V>(
@@ -1572,8 +1976,10 @@ pub mod singleton_map_recursive {
         where
             V: Visitor<'de>,
         {
-            self.delegate
-                .deserialize_unit_struct(name, SingletonMapRecursive { delegate: visitor })
+            self.delegate.deserialize_unit_struct(
+                name,
+                SingletonMapRecursive { delegate: visitor },
+            )
         }
 
         fn deserialize_newtype_struct<V>(
@@ -1584,24 +1990,36 @@ pub mod singleton_map_recursive {
         where
             V: Visitor<'de>,
         {
-            self.delegate
-                .deserialize_newtype_struct(name, SingletonMapRecursive { delegate: visitor })
+            self.delegate.deserialize_newtype_struct(
+                name,
+                SingletonMapRecursive { delegate: visitor },
+            )
         }
 
-        fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_seq<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
-            self.delegate
-                .deserialize_seq(SingletonMapRecursive { delegate: visitor })
+            self.delegate.deserialize_seq(SingletonMapRecursive {
+                delegate: visitor,
+            })
         }
 
-        fn deserialize_tuple<V>(self, len: usize, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_tuple<V>(
+            self,
+            len: usize,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
-            self.delegate
-                .deserialize_tuple(len, SingletonMapRecursive { delegate: visitor })
+            self.delegate.deserialize_tuple(
+                len,
+                SingletonMapRecursive { delegate: visitor },
+            )
         }
 
         fn deserialize_tuple_struct<V>(
@@ -1620,12 +2038,16 @@ pub mod singleton_map_recursive {
             )
         }
 
-        fn deserialize_map<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_map<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
-            self.delegate
-                .deserialize_map(SingletonMapRecursive { delegate: visitor })
+            self.delegate.deserialize_map(SingletonMapRecursive {
+                delegate: visitor,
+            })
         }
 
         fn deserialize_struct<V>(
@@ -1659,20 +2081,28 @@ pub mod singleton_map_recursive {
             })
         }
 
-        fn deserialize_identifier<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_identifier<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
-            self.delegate
-                .deserialize_identifier(SingletonMapRecursive { delegate: visitor })
+            self.delegate.deserialize_identifier(
+                SingletonMapRecursive { delegate: visitor },
+            )
         }
 
-        fn deserialize_ignored_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        fn deserialize_ignored_any<V>(
+            self,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
-            self.delegate
-                .deserialize_ignored_any(SingletonMapRecursive { delegate: visitor })
+            self.delegate.deserialize_ignored_any(
+                SingletonMapRecursive { delegate: visitor },
+            )
         }
 
         fn is_human_readable(&self) -> bool {
@@ -1686,7 +2116,10 @@ pub mod singleton_map_recursive {
     {
         type Value = V::Value;
 
-        fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fn expecting(
+            &self,
+            formatter: &mut fmt::Formatter<'_>,
+        ) -> fmt::Result {
             self.delegate.expecting(formatter)
         }
 
@@ -1795,7 +2228,10 @@ pub mod singleton_map_recursive {
             self.delegate.visit_str(v)
         }
 
-        fn visit_borrowed_str<E>(self, v: &'de str) -> Result<Self::Value, E>
+        fn visit_borrowed_str<E>(
+            self,
+            v: &'de str,
+        ) -> Result<Self::Value, E>
         where
             E: de::Error,
         {
@@ -1816,7 +2252,10 @@ pub mod singleton_map_recursive {
             self.delegate.visit_bytes(v)
         }
 
-        fn visit_borrowed_bytes<E>(self, v: &'de [u8]) -> Result<Self::Value, E>
+        fn visit_borrowed_bytes<E>(
+            self,
+            v: &'de [u8],
+        ) -> Result<Self::Value, E>
         where
             E: de::Error,
         {
@@ -1837,7 +2276,10 @@ pub mod singleton_map_recursive {
             self.delegate.visit_none()
         }
 
-        fn visit_some<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+        fn visit_some<D>(
+            self,
+            deserializer: D,
+        ) -> Result<Self::Value, D::Error>
         where
             D: Deserializer<'de>,
         {
@@ -1853,7 +2295,10 @@ pub mod singleton_map_recursive {
             self.delegate.visit_unit()
         }
 
-        fn visit_newtype_struct<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+        fn visit_newtype_struct<D>(
+            self,
+            deserializer: D,
+        ) -> Result<Self::Value, D::Error>
         where
             D: Deserializer<'de>,
         {
@@ -1885,7 +2330,10 @@ pub mod singleton_map_recursive {
     {
         type Value = T::Value;
 
-        fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+        fn deserialize<D>(
+            self,
+            deserializer: D,
+        ) -> Result<Self::Value, D::Error>
         where
             D: Deserializer<'de>,
         {
@@ -1901,12 +2349,16 @@ pub mod singleton_map_recursive {
     {
         type Error = S::Error;
 
-        fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Self::Error>
+        fn next_element_seed<T>(
+            &mut self,
+            seed: T,
+        ) -> Result<Option<T::Value>, Self::Error>
         where
             T: DeserializeSeed<'de>,
         {
-            self.delegate
-                .next_element_seed(SingletonMapRecursive { delegate: seed })
+            self.delegate.next_element_seed(SingletonMapRecursive {
+                delegate: seed,
+            })
         }
     }
 
@@ -1916,7 +2368,10 @@ pub mod singleton_map_recursive {
     {
         type Error = M::Error;
 
-        fn next_key_seed<K>(&mut self, seed: K) -> Result<Option<K::Value>, Self::Error>
+        fn next_key_seed<K>(
+            &mut self,
+            seed: K,
+        ) -> Result<Option<K::Value>, Self::Error>
         where
             K: DeserializeSeed<'de>,
         {
@@ -1924,12 +2379,16 @@ pub mod singleton_map_recursive {
                 .next_key_seed(SingletonMapRecursive { delegate: seed })
         }
 
-        fn next_value_seed<V>(&mut self, seed: V) -> Result<V::Value, Self::Error>
+        fn next_value_seed<V>(
+            &mut self,
+            seed: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: DeserializeSeed<'de>,
         {
-            self.delegate
-                .next_value_seed(SingletonMapRecursive { delegate: seed })
+            self.delegate.next_value_seed(SingletonMapRecursive {
+                delegate: seed,
+            })
         }
     }
 
@@ -1944,7 +2403,10 @@ pub mod singleton_map_recursive {
     {
         type Value = V::Value;
 
-        fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fn expecting(
+            &self,
+            formatter: &mut fmt::Formatter<'_>,
+        ) -> fmt::Result {
             self.delegate.expecting(formatter)
         }
 
@@ -1955,7 +2417,10 @@ pub mod singleton_map_recursive {
             self.delegate.visit_enum(de::value::StrDeserializer::new(v))
         }
 
-        fn visit_borrowed_str<E>(self, v: &'de str) -> Result<Self::Value, E>
+        fn visit_borrowed_str<E>(
+            self,
+            v: &'de str,
+        ) -> Result<Self::Value, E>
         where
             E: de::Error,
         {
@@ -1978,7 +2443,10 @@ pub mod singleton_map_recursive {
             self.delegate.visit_none()
         }
 
-        fn visit_some<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+        fn visit_some<D>(
+            self,
+            deserializer: D,
+        ) -> Result<Self::Value, D::Error>
         where
             D: Deserializer<'de>,
         {
@@ -2012,7 +2480,10 @@ pub mod singleton_map_recursive {
         type Error = D::Error;
         type Variant = Self;
 
-        fn variant_seed<V>(mut self, seed: V) -> Result<(V::Value, Self::Variant), Self::Error>
+        fn variant_seed<V>(
+            mut self,
+            seed: V,
+        ) -> Result<(V::Value, Self::Variant), Self::Error>
         where
             V: DeserializeSeed<'de>,
         {
@@ -2033,16 +2504,22 @@ pub mod singleton_map_recursive {
         type Error = D::Error;
 
         fn unit_variant(self) -> Result<(), Self::Error> {
-            Err(de::Error::invalid_type(Unexpected::Map, &"unit variant"))
+            Err(de::Error::invalid_type(
+                Unexpected::Map,
+                &"unit variant",
+            ))
         }
 
-        fn newtype_variant_seed<T>(mut self, seed: T) -> Result<T::Value, Self::Error>
+        fn newtype_variant_seed<T>(
+            mut self,
+            seed: T,
+        ) -> Result<T::Value, Self::Error>
         where
             T: DeserializeSeed<'de>,
         {
-            let value = self
-                .delegate
-                .next_value_seed(SingletonMapRecursive { delegate: seed })?;
+            let value = self.delegate.next_value_seed(
+                SingletonMapRecursive { delegate: seed },
+            )?;
             match self.delegate.next_key()? {
                 None => Ok(value),
                 Some(IgnoredAny) => Err(de::Error::invalid_value(
@@ -2052,14 +2529,21 @@ pub mod singleton_map_recursive {
             }
         }
 
-        fn tuple_variant<V>(mut self, len: usize, visitor: V) -> Result<V::Value, Self::Error>
+        fn tuple_variant<V>(
+            mut self,
+            len: usize,
+            visitor: V,
+        ) -> Result<V::Value, Self::Error>
         where
             V: Visitor<'de>,
         {
-            let value = self.delegate.next_value_seed(TupleVariantSeed {
-                len,
-                visitor: SingletonMapRecursive { delegate: visitor },
-            })?;
+            let value =
+                self.delegate.next_value_seed(TupleVariantSeed {
+                    len,
+                    visitor: SingletonMapRecursive {
+                        delegate: visitor,
+                    },
+                })?;
             match self.delegate.next_key()? {
                 None => Ok(value),
                 Some(IgnoredAny) => Err(de::Error::invalid_value(
@@ -2077,11 +2561,14 @@ pub mod singleton_map_recursive {
         where
             V: Visitor<'de>,
         {
-            let value = self.delegate.next_value_seed(StructVariantSeed {
-                name: self.name,
-                fields,
-                visitor: SingletonMapRecursive { delegate: visitor },
-            })?;
+            let value =
+                self.delegate.next_value_seed(StructVariantSeed {
+                    name: self.name,
+                    fields,
+                    visitor: SingletonMapRecursive {
+                        delegate: visitor,
+                    },
+                })?;
             match self.delegate.next_key()? {
                 None => Ok(value),
                 Some(IgnoredAny) => Err(de::Error::invalid_value(
@@ -2103,7 +2590,10 @@ pub mod singleton_map_recursive {
     {
         type Value = V::Value;
 
-        fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+        fn deserialize<D>(
+            self,
+            deserializer: D,
+        ) -> Result<Self::Value, D::Error>
         where
             D: Deserializer<'de>,
         {
@@ -2123,11 +2613,18 @@ pub mod singleton_map_recursive {
     {
         type Value = V::Value;
 
-        fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+        fn deserialize<D>(
+            self,
+            deserializer: D,
+        ) -> Result<Self::Value, D::Error>
         where
             D: Deserializer<'de>,
         {
-            deserializer.deserialize_struct(self.name, self.fields, self.visitor)
+            deserializer.deserialize_struct(
+                self.name,
+                self.fields,
+                self.visitor,
+            )
         }
     }
 }

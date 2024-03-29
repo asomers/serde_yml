@@ -29,25 +29,39 @@ include = [
     "/xtask/**",
 ]
 
+[workspace]
+members = ["xtask"]
+
 # [[bench]]
 # name = "benchmark"
 # harness = false
 # path = "benches/criterion.rs"
 
-[profile.bench]
-debug = true
+# [profile.bench]
+# debug = true
 
 [dependencies]
+env_logger = "0.11.3"
+figlet-rs = "0.1.5"
 indexmap = "2.2.6"
 itoa = "1.0.11"
+log = {version="0.4.21", features = ["std"] }
 ryu = "1.0.17"
 serde = { version = "1.0.197", features = ["derive"] }
 unsafe-libyaml = "0.2.11"
+dtt = "0.0.5"
+rlg = "0.0.3"
+uuid = { version = "1.8.0", features = ["v4"] }
+xtasks = "0.0.2"
 
 [dev-dependencies]
 anyhow = "1.0.81"
 indoc = "2.0.5"
 serde_derive = "1.0.197"
+
+# Unix platforms use OpenSSL for now to provide SSL functionality
+[target.'cfg(all(unix, not(target_os = "macos")))'.dependencies]
+openssl = { version = "0.10.64", features = ["vendored"] }
 
 [features]
 default = []

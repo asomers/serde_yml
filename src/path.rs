@@ -16,11 +16,17 @@ pub enum Path<'a> {
 }
 
 impl Display for Path<'_> {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+    fn fmt(
+        &self,
+        formatter: &mut fmt::Formatter<'_>,
+    ) -> Result<(), fmt::Error> {
         struct Parent<'a>(&'a Path<'a>);
 
         impl Display for Parent<'_> {
-            fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+            fn fmt(
+                &self,
+                formatter: &mut fmt::Formatter<'_>,
+            ) -> Result<(), fmt::Error> {
                 match self.0 {
                     Path::Root => Ok(()),
                     path => write!(formatter, "{}.", path),
@@ -30,10 +36,16 @@ impl Display for Path<'_> {
 
         match self {
             Path::Root => formatter.write_str("."),
-            Path::Seq { parent, index } => write!(formatter, r"{}\[{}\]", parent, index),
-            Path::Map { parent, key } => write!(formatter, "{}{}", Parent(parent), key),
+            Path::Seq { parent, index } => {
+                write!(formatter, r"{}\[{}\]", parent, index)
+            }
+            Path::Map { parent, key } => {
+                write!(formatter, "{}{}", Parent(parent), key)
+            }
             Path::Alias { parent } => write!(formatter, "{}", parent),
-            Path::Unknown { parent } => write!(formatter, "{}?", Parent(parent)),
+            Path::Unknown { parent } => {
+                write!(formatter, "{}?", Parent(parent))
+            }
         }
     }
 }

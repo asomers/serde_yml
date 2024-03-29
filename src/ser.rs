@@ -9,7 +9,9 @@
 
 use crate::error::{self, Error, ErrorImpl};
 use crate::libyaml;
-use crate::libyaml::emitter::{Emitter, Event, Mapping, Scalar, ScalarStyle, Sequence};
+use crate::libyaml::emitter::{
+    Emitter, Event, Mapping, Scalar, ScalarStyle, Sequence,
+};
 use crate::value::tagged::{self, MaybeTag};
 use serde::de::Visitor;
 use serde::ser::{self, Serializer as _};
@@ -69,7 +71,11 @@ where
     pub fn new(writer: W) -> Self {
         let mut emitter = Emitter::new({
             let writer = Box::new(writer);
-            unsafe { mem::transmute::<Box<dyn io::Write>, Box<dyn io::Write>>(writer) }
+            unsafe {
+                mem::transmute::<Box<dyn io::Write>, Box<dyn io::Write>>(
+                    writer,
+                )
+            }
         });
         emitter.emit(Event::StreamStart).unwrap();
         Serializer {
@@ -148,7 +154,8 @@ where
     }
 
     fn take_tag(&mut self) -> Option<String> {
-        let state = mem::replace(&mut self.state, State::NothingInParticular);
+        let state =
+            mem::replace(&mut self.state, State::NothingInParticular);
         if let State::FoundTag(mut tag) = state {
             if !tag.starts_with('!') {
                 tag.insert(0, '!');
@@ -279,7 +286,9 @@ where
         self.emit_scalar(Scalar {
             tag: None,
             value: match v.classify() {
-                num::FpCategory::Infinite if v.is_sign_positive() => ".inf",
+                num::FpCategory::Infinite if v.is_sign_positive() => {
+                    ".inf"
+                }
                 num::FpCategory::Infinite => "-.inf",
                 num::FpCategory::Nan => ".nan",
                 _ => buffer.format_finite(v),
@@ -293,7 +302,9 @@ where
         self.emit_scalar(Scalar {
             tag: None,
             value: match v.classify() {
-                num::FpCategory::Infinite if v.is_sign_positive() => ".inf",
+                num::FpCategory::Infinite if v.is_sign_positive() => {
+                    ".inf"
+                }
                 num::FpCategory::Infinite => "-.inf",
                 num::FpCategory::Nan => ".nan",
                 _ => buffer.format_finite(v),
@@ -316,7 +327,10 @@ where
         impl<'de> Visitor<'de> for InferScalarStyle {
             type Value = ScalarStyle;
 
-            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            fn expecting(
+                &self,
+                formatter: &mut fmt::Formatter,
+            ) -> fmt::Result {
                 formatter.write_str("I wonder")
             }
 
@@ -360,8 +374,9 @@ where
         let style = match value {
             // Backwards compatibility with old YAML boolean scalars.
             // See https://yaml.org/type/bool.html
-            "y" | "Y" | "yes" | "Yes" | "YES" | "n" | "N" | "no" | "No" | "NO" | "true"
-            | "True" | "TRUE" | "false" | "False" | "FALSE" | "on" | "On" | "ON" | "off"
+            "y" | "Y" | "yes" | "Yes" | "YES" | "n" | "N" | "no"
+            | "No" | "NO" | "true" | "True" | "TRUE" | "false"
+            | "False" | "FALSE" | "on" | "On" | "ON" | "off"
             | "Off" | "OFF" => ScalarStyle::SingleQuoted,
             _ if value.contains('\n') => ScalarStyle::Literal,
             _ => {
@@ -407,7 +422,11 @@ where
         self.serialize_str(variant)
     }
 
-    fn serialize_newtype_struct<T>(self, _name: &'static str, value: &T) -> Result<()>
+    fn serialize_newtype_struct<T>(
+        self,
+        _name: &'static str,
+        value: &T,
+    ) -> Result<()>
     where
         T: ?Sized + ser::Serialize,
     {
@@ -442,12 +461,18 @@ where
         value.serialize(self)
     }
 
-    fn serialize_seq(self, _len: Option<usize>) -> Result<Self::SerializeSeq> {
+    fn serialize_seq(
+        self,
+        _len: Option<usize>,
+    ) -> Result<Self::SerializeSeq> {
         self.emit_sequence_start()?;
         Ok(self)
     }
 
-    fn serialize_tuple(self, _len: usize) -> Result<Self::SerializeTuple> {
+    fn serialize_tuple(
+        self,
+        _len: usize,
+    ) -> Result<Self::SerializeTuple> {
         self.emit_sequence_start()?;
         Ok(self)
     }
@@ -476,7 +501,10 @@ where
         Ok(self)
     }
 
-    fn serialize_map(self, len: Option<usize>) -> Result<Self::SerializeMap> {
+    fn serialize_map(
+        self,
+        len: Option<usize>,
+    ) -> Result<Self::SerializeMap> {
         if len == Some(1) {
             self.state = if let State::FoundTag(_) = self.state {
                 self.emit_mapping_start()?;
@@ -490,7 +518,11 @@ where
         Ok(self)
     }
 
-    fn serialize_struct(self, _name: &'static str, _len: usize) -> Result<Self::SerializeStruct> {
+    fn serialize_struct(
+        self,
+        _name: &'static str,
+        _len: usize,
+    ) -> Result<Self::SerializeStruct> {
         self.emit_mapping_start()?;
         Ok(self)
     }
@@ -514,11 +546,15 @@ where
     where
         T: ?Sized + Display,
     {
-        let string = if let State::CheckForTag | State::CheckForDuplicateTag = self.state {
+        let string = if let State::CheckForTag
+        | State::CheckForDuplicateTag = self.state
+        {
             match tagged::check_for_tag(value) {
                 MaybeTag::NotTag(string) => string,
                 MaybeTag::Tag(string) => {
-                    return if let State::CheckForDuplicateTag = self.state {
+                    return if let State::CheckForDuplicateTag =
+                        self.state
+                    {
                         Err(error::new(ErrorImpl::SerializeNestedEnum))
                     } else {
                         self.state = State::FoundTag(string);
@@ -632,7 +668,11 @@ where
         value.serialize(&mut **self)
     }
 
-    fn serialize_entry<K, V>(&mut self, key: &K, value: &V) -> Result<(), Self::Error>
+    fn serialize_entry<K, V>(
+        &mut self,
+        key: &K,
+        value: &V,
+    ) -> Result<(), Self::Error>
     where
         K: ?Sized + ser::Serialize,
         V: ?Sized + ser::Serialize,
@@ -665,7 +705,11 @@ where
     type Ok = ();
     type Error = Error;
 
-    fn serialize_field<V>(&mut self, key: &'static str, value: &V) -> Result<()>
+    fn serialize_field<V>(
+        &mut self,
+        key: &'static str,
+        value: &V,
+    ) -> Result<()>
     where
         V: ?Sized + ser::Serialize,
     {
@@ -685,7 +729,11 @@ where
     type Ok = ();
     type Error = Error;
 
-    fn serialize_field<V>(&mut self, field: &'static str, v: &V) -> Result<()>
+    fn serialize_field<V>(
+        &mut self,
+        field: &'static str,
+        v: &V,
+    ) -> Result<()>
     where
         V: ?Sized + ser::Serialize,
     {
@@ -721,5 +769,6 @@ where
 {
     let mut vec = Vec::with_capacity(128);
     to_writer(&mut vec, value)?;
-    String::from_utf8(vec).map_err(|error| error::new(ErrorImpl::FromUtf8(error)))
+    String::from_utf8(vec)
+        .map_err(|error| error::new(ErrorImpl::FromUtf8(error)))
 }

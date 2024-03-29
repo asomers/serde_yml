@@ -3,12 +3,16 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT indicates dual licensing under Apache 2.0 or MIT licenses.
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
-use crate::value::de::{MapDeserializer, MapRefDeserializer, SeqDeserializer, SeqRefDeserializer};
+use crate::value::de::{
+    MapDeserializer, MapRefDeserializer, SeqDeserializer,
+    SeqRefDeserializer,
+};
 use crate::value::Value;
 use crate::Error;
 use serde::de::value::{BorrowedStrDeserializer, StrDeserializer};
 use serde::de::{
-    Deserialize, DeserializeSeed, Deserializer, EnumAccess, Error as _, VariantAccess, Visitor,
+    Deserialize, DeserializeSeed, Deserializer, EnumAccess, Error as _,
+    VariantAccess, Visitor,
 };
 use serde::forward_to_deserialize_any;
 use serde::ser::{Serialize, SerializeMap, Serializer};
@@ -184,7 +188,10 @@ impl Serialize for TaggedValue {
         struct SerializeTag<'a>(&'a Tag);
 
         impl Serialize for SerializeTag<'_> {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            fn serialize<S>(
+                &self,
+                serializer: S,
+            ) -> Result<S::Ok, S::Error>
             where
                 S: Serializer,
             {
@@ -208,15 +215,22 @@ impl<'de> Deserialize<'de> for TaggedValue {
         impl<'de> Visitor<'de> for TaggedValueVisitor {
             type Value = TaggedValue;
 
-            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+            fn expecting(
+                &self,
+                formatter: &mut fmt::Formatter<'_>,
+            ) -> fmt::Result {
                 formatter.write_str("a YAML value with a !Tag")
             }
 
-            fn visit_enum<A>(self, data: A) -> Result<Self::Value, A::Error>
+            fn visit_enum<A>(
+                self,
+                data: A,
+            ) -> Result<Self::Value, A::Error>
             where
                 A: EnumAccess<'de>,
             {
-                let (tag, contents) = data.variant_seed(TagStringVisitor)?;
+                let (tag, contents) =
+                    data.variant_seed(TagStringVisitor)?;
                 let value = contents.newtype_variant()?;
                 Ok(TaggedValue { tag, value })
             }
@@ -236,7 +250,10 @@ impl<'de> Deserializer<'de> for TaggedValue {
         visitor.visit_enum(self)
     }
 
-    fn deserialize_ignored_any<V>(self, visitor: V) -> Result<V::Value, Error>
+    fn deserialize_ignored_any<V>(
+        self,
+        visitor: V,
+    ) -> Result<V::Value, Error>
     where
         V: Visitor<'de>,
     {
@@ -255,11 +272,15 @@ impl<'de> EnumAccess<'de> for TaggedValue {
     type Error = Error;
     type Variant = Value;
 
-    fn variant_seed<V>(self, seed: V) -> Result<(V::Value, Self::Variant), Error>
+    fn variant_seed<V>(
+        self,
+        seed: V,
+    ) -> Result<(V::Value, Self::Variant), Error>
     where
         V: DeserializeSeed<'de>,
     {
-        let tag = StrDeserializer::<Error>::new(nobang(&self.tag.string));
+        let tag =
+            StrDeserializer::<Error>::new(nobang(&self.tag.string));
         let value = seed.deserialize(tag)?;
         Ok((value, self.value))
     }
@@ -279,14 +300,24 @@ impl<'de> VariantAccess<'de> for Value {
         seed.deserialize(self)
     }
 
-    fn tuple_variant<V>(self, _len: usize, visitor: V) -> Result<V::Value, Error>
+    fn tuple_variant<V>(
+        self,
+        _len: usize,
+        visitor: V,
+    ) -> Result<V::Value, Error>
     where
         V: Visitor<'de>,
     {
         if let Value::Sequence(v) = self {
-            Deserializer::deserialize_any(SeqDeserializer::new(v), visitor)
+            Deserializer::deserialize_any(
+                SeqDeserializer::new(v),
+                visitor,
+            )
         } else {
-            Err(Error::invalid_type(self.unexpected(), &"tuple variant"))
+            Err(Error::invalid_type(
+                self.unexpected(),
+                &"tuple variant",
+            ))
         }
     }
 
@@ -299,9 +330,15 @@ impl<'de> VariantAccess<'de> for Value {
         V: Visitor<'de>,
     {
         if let Value::Mapping(v) = self {
-            Deserializer::deserialize_any(MapDeserializer::new(v), visitor)
+            Deserializer::deserialize_any(
+                MapDeserializer::new(v),
+                visitor,
+            )
         } else {
-            Err(Error::invalid_type(self.unexpected(), &"struct variant"))
+            Err(Error::invalid_type(
+                self.unexpected(),
+                &"struct variant",
+            ))
         }
     }
 }
@@ -316,7 +353,10 @@ impl<'de> Deserializer<'de> for &'de TaggedValue {
         visitor.visit_enum(self)
     }
 
-    fn deserialize_ignored_any<V>(self, visitor: V) -> Result<V::Value, Error>
+    fn deserialize_ignored_any<V>(
+        self,
+        visitor: V,
+    ) -> Result<V::Value, Error>
     where
         V: Visitor<'de>,
     {
@@ -334,11 +374,16 @@ impl<'de> EnumAccess<'de> for &'de TaggedValue {
     type Error = Error;
     type Variant = &'de Value;
 
-    fn variant_seed<V>(self, seed: V) -> Result<(V::Value, Self::Variant), Error>
+    fn variant_seed<V>(
+        self,
+        seed: V,
+    ) -> Result<(V::Value, Self::Variant), Error>
     where
         V: DeserializeSeed<'de>,
     {
-        let tag = BorrowedStrDeserializer::<Error>::new(nobang(&self.tag.string));
+        let tag = BorrowedStrDeserializer::<Error>::new(nobang(
+            &self.tag.string,
+        ));
         let value = seed.deserialize(tag)?;
         Ok((value, &self.value))
     }
@@ -358,14 +403,24 @@ impl<'de> VariantAccess<'de> for &'de Value {
         seed.deserialize(self)
     }
 
-    fn tuple_variant<V>(self, _len: usize, visitor: V) -> Result<V::Value, Error>
+    fn tuple_variant<V>(
+        self,
+        _len: usize,
+        visitor: V,
+    ) -> Result<V::Value, Error>
     where
         V: Visitor<'de>,
     {
         if let Value::Sequence(v) = self {
-            Deserializer::deserialize_any(SeqRefDeserializer::new(v), visitor)
+            Deserializer::deserialize_any(
+                SeqRefDeserializer::new(v),
+                visitor,
+            )
         } else {
-            Err(Error::invalid_type(self.unexpected(), &"tuple variant"))
+            Err(Error::invalid_type(
+                self.unexpected(),
+                &"tuple variant",
+            ))
         }
     }
 
@@ -378,9 +433,15 @@ impl<'de> VariantAccess<'de> for &'de Value {
         V: Visitor<'de>,
     {
         if let Value::Mapping(v) = self {
-            Deserializer::deserialize_any(MapRefDeserializer::new(v), visitor)
+            Deserializer::deserialize_any(
+                MapRefDeserializer::new(v),
+                visitor,
+            )
         } else {
-            Err(Error::invalid_type(self.unexpected(), &"struct variant"))
+            Err(Error::invalid_type(
+                self.unexpected(),
+                &"struct variant",
+            ))
         }
     }
 }
@@ -390,7 +451,10 @@ pub(crate) struct TagStringVisitor;
 impl Visitor<'_> for TagStringVisitor {
     type Value = Tag;
 
-    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn expecting(
+        &self,
+        formatter: &mut fmt::Formatter<'_>,
+    ) -> fmt::Result {
         formatter.write_str("a YAML tag string")
     }
 
@@ -415,7 +479,10 @@ impl Visitor<'_> for TagStringVisitor {
 impl<'de> DeserializeSeed<'de> for TagStringVisitor {
     type Value = Tag;
 
-    fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+    fn deserialize<D>(
+        self,
+        deserializer: D,
+    ) -> Result<Self::Value, D::Error>
     where
         D: Deserializer<'de>,
     {

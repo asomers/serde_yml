@@ -47,7 +47,8 @@ fn test_incorrect_type() {
         ---
         str
     "};
-    let expected = "invalid type: string \"str\", expected i16 at line 2 column 1";
+    let expected =
+        "invalid type: string \"str\", expected i16 at line 2 column 1";
     test_error::<i16>(yaml, expected);
 }
 
@@ -173,7 +174,8 @@ fn test_missing_enum_tag() {
         "V": 16
         "other": 32
     "#};
-    let expected = "invalid type: map, expected a YAML tag starting with '!'";
+    let expected =
+        "invalid type: map, expected a YAML tag starting with '!'";
     test_error::<E>(yaml, expected);
 }
 
@@ -190,7 +192,8 @@ fn test_serialize_nested_enum() {
         Struct { x: usize },
     }
 
-    let expected = "serializing nested enums in YAML is not supported yet";
+    let expected =
+        "serializing nested enums in YAML is not supported yet";
 
     let e = Outer::Inner(Inner::Newtype(0));
     let error = serde_yml::to_string(&e).unwrap_err();
@@ -259,7 +262,8 @@ fn test_variant_not_a_seq() {
         !V
         value: 0
     "};
-    let expected = "invalid type: map, expected usize at line 2 column 1";
+    let expected =
+        "invalid type: map, expected usize at line 2 column 1";
     test_error::<E>(yaml, expected);
 }
 
@@ -428,7 +432,10 @@ fn test_billion_laughs() {
     impl<'de> Visitor<'de> for X {
         type Value = X;
 
-        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        fn expecting(
+            &self,
+            formatter: &mut fmt::Formatter,
+        ) -> fmt::Result {
             formatter.write_str("exponential blowup")
         }
 
@@ -476,7 +483,8 @@ fn test_duplicate_keys() {
         thing: true
         thing: false
     "};
-    let expected = "duplicate entry with key \"thing\" at line 2 column 1";
+    let expected =
+        "duplicate entry with key \"thing\" at line 2 column 1";
     test_error::<Value>(yaml, expected);
 
     let yaml = indoc! {"

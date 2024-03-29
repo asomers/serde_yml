@@ -20,7 +20,10 @@ pub trait Index: private::Sealed {
 
     /// Return None if the key is not already in the sequence or object.
     #[doc(hidden)]
-    fn index_into_mut<'v>(&self, v: &'v mut Value) -> Option<&'v mut Value>;
+    fn index_into_mut<'v>(
+        &self,
+        v: &'v mut Value,
+    ) -> Option<&'v mut Value>;
 
     /// Panic if sequence index out of bounds. If key is not already in the object,
     /// insert it with a value of null. Panic if Value is a type that cannot be
@@ -34,18 +37,28 @@ impl Index for usize {
     fn index_into<'v>(&self, v: &'v Value) -> Option<&'v Value> {
         match v.untag_ref() {
             Value::Sequence(vec) => vec.get(*self),
-            Value::Mapping(vec) => vec.get(&Value::Number((*self).into())),
+            Value::Mapping(vec) => {
+                vec.get(&Value::Number((*self).into()))
+            }
             _ => None,
         }
     }
-    fn index_into_mut<'v>(&self, v: &'v mut Value) -> Option<&'v mut Value> {
+    fn index_into_mut<'v>(
+        &self,
+        v: &'v mut Value,
+    ) -> Option<&'v mut Value> {
         match v.untag_mut() {
             Value::Sequence(vec) => vec.get_mut(*self),
-            Value::Mapping(vec) => vec.get_mut(&Value::Number((*self).into())),
+            Value::Mapping(vec) => {
+                vec.get_mut(&Value::Number((*self).into()))
+            }
             _ => None,
         }
     }
-    fn index_or_insert<'v>(&self, mut v: &'v mut Value) -> &'v mut Value {
+    fn index_or_insert<'v>(
+        &self,
+        mut v: &'v mut Value,
+    ) -> &'v mut Value {
         loop {
             match v {
                 Value::Sequence(vec) => {
@@ -62,13 +75,20 @@ impl Index for usize {
                     return map.entry(n).or_insert(Value::Null);
                 }
                 Value::Tagged(tagged) => v = &mut tagged.value,
-                _ => panic!("cannot access index {} of YAML {}", self, Type(v)),
+                _ => panic!(
+                    "cannot access index {} of YAML {}",
+                    self,
+                    Type(v)
+                ),
             }
         }
     }
 }
 
-fn index_into_mapping<'v, I>(index: &I, v: &'v Value) -> Option<&'v Value>
+fn index_into_mapping<'v, I>(
+    index: &I,
+    v: &'v Value,
+) -> Option<&'v Value>
 where
     I: ?Sized + mapping::Index,
 {
@@ -78,7 +98,10 @@ where
     }
 }
 
-fn index_into_mut_mapping<'v, I>(index: &I, v: &'v mut Value) -> Option<&'v mut Value>
+fn index_into_mut_mapping<'v, I>(
+    index: &I,
+    v: &'v mut Value,
+) -> Option<&'v mut Value>
 where
     I: ?Sized + mapping::Index,
 {
@@ -88,7 +111,10 @@ where
     }
 }
 
-fn index_or_insert_mapping<'v, I>(index: &I, mut v: &'v mut Value) -> &'v mut Value
+fn index_or_insert_mapping<'v, I>(
+    index: &I,
+    mut v: &'v mut Value,
+) -> &'v mut Value
 where
     I: ?Sized + mapping::Index + ToOwned + Debug,
     Value: From<I::Owned>,
@@ -96,20 +122,28 @@ where
     if let Value::Null = *v {
         *v = Value::Mapping(Mapping::new());
         return match v {
-            Value::Mapping(map) => match map.entry(index.to_owned().into()) {
-                Entry::Vacant(entry) => entry.insert(Value::Null),
-                Entry::Occupied(_) => unreachable!(),
-            },
+            Value::Mapping(map) => {
+                match map.entry(index.to_owned().into()) {
+                    Entry::Vacant(entry) => entry.insert(Value::Null),
+                    Entry::Occupied(_) => unreachable!(),
+                }
+            }
             _ => unreachable!(),
         };
     }
     loop {
         match v {
             Value::Mapping(map) => {
-                return map.entry(index.to_owned().into()).or_insert(Value::Null);
+                return map
+                    .entry(index.to_owned().into())
+                    .or_insert(Value::Null);
             }
             Value::Tagged(tagged) => v = &mut tagged.value,
-            _ => panic!("cannot access key {:?} in YAML {}", index, Type(v)),
+            _ => panic!(
+                "cannot access key {:?} in YAML {}",
+                index,
+                Type(v)
+            ),
         }
     }
 }
@@ -118,7 +152,10 @@ impl Index for Value {
     fn index_into<'v>(&self, v: &'v Value) -> Option<&'v Value> {
         index_into_mapping(self, v)
     }
-    fn index_into_mut<'v>(&self, v: &'v mut Value) -> Option<&'v mut Value> {
+    fn index_into_mut<'v>(
+        &self,
+        v: &'v mut Value,
+    ) -> Option<&'v mut Value> {
         index_into_mut_mapping(self, v)
     }
     fn index_or_insert<'v>(&self, v: &'v mut Value) -> &'v mut Value {
@@ -130,7 +167,10 @@ impl Index for str {
     fn index_into<'v>(&self, v: &'v Value) -> Option<&'v Value> {
         index_into_mapping(self, v)
     }
-    fn index_into_mut<'v>(&self, v: &'v mut Value) -> Option<&'v mut Value> {
+    fn index_into_mut<'v>(
+        &self,
+        v: &'v mut Value,
+    ) -> Option<&'v mut Value> {
         index_into_mut_mapping(self, v)
     }
     fn index_or_insert<'v>(&self, v: &'v mut Value) -> &'v mut Value {
@@ -142,7 +182,10 @@ impl Index for String {
     fn index_into<'v>(&self, v: &'v Value) -> Option<&'v Value> {
         self.as_str().index_into(v)
     }
-    fn index_into_mut<'v>(&self, v: &'v mut Value) -> Option<&'v mut Value> {
+    fn index_into_mut<'v>(
+        &self,
+        v: &'v mut Value,
+    ) -> Option<&'v mut Value> {
         self.as_str().index_into_mut(v)
     }
     fn index_or_insert<'v>(&self, v: &'v mut Value) -> &'v mut Value {
@@ -157,7 +200,10 @@ where
     fn index_into<'v>(&self, v: &'v Value) -> Option<&'v Value> {
         (**self).index_into(v)
     }
-    fn index_into_mut<'v>(&self, v: &'v mut Value) -> Option<&'v mut Value> {
+    fn index_into_mut<'v>(
+        &self,
+        v: &'v mut Value,
+    ) -> Option<&'v mut Value> {
         (**self).index_into_mut(v)
     }
     fn index_or_insert<'v>(&self, v: &'v mut Value) -> &'v mut Value {

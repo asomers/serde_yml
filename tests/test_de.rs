@@ -56,7 +56,8 @@ where
     T: PartialEq + Debug,
     S: serde::de::DeserializeSeed<'de, Value = T>,
 {
-    let deserialized: T = seed.deserialize(Deserializer::from_str(yaml)).unwrap();
+    let deserialized: T =
+        seed.deserialize(Deserializer::from_str(yaml)).unwrap();
     assert_eq!(*expected, deserialized);
 
     serde_yml::from_str::<serde_yml::Value>(yaml).unwrap();
@@ -70,7 +71,8 @@ fn test_borrowed() {
         - 'single quoted'
         - \"double quoted\"
     "};
-    let expected = vec!["plain nonàscii", "single quoted", "double quoted"];
+    let expected =
+        vec!["plain nonàscii", "single quoted", "double quoted"];
     test_de_no_value(yaml, &expected);
 }
 
@@ -436,21 +438,30 @@ fn test_numbers() {
     for &(yaml, expected) in &cases {
         let value = serde_yml::from_str::<Value>(yaml).unwrap();
         match value {
-            Value::Number(number) => assert_eq!(number.to_string(), expected),
-            _ => panic!("expected number. input={:?}, result={:?}", yaml, value),
+            Value::Number(number) => {
+                assert_eq!(number.to_string(), expected)
+            }
+            _ => panic!(
+                "expected number. input={:?}, result={:?}",
+                yaml, value
+            ),
         }
     }
 
     // NOT numbers.
     let cases = [
-        "0127", "+0127", "-0127", "++.inf", "+-.inf", "++1", "+-1", "-+1", "--1", "0x+1", "0x-1",
-        "-0x+1", "-0x-1", "++0x1", "+-0x1", "-+0x1", "--0x1",
+        "0127", "+0127", "-0127", "++.inf", "+-.inf", "++1", "+-1",
+        "-+1", "--1", "0x+1", "0x-1", "-0x+1", "-0x-1", "++0x1",
+        "+-0x1", "-+0x1", "--0x1",
     ];
     for yaml in &cases {
         let value = serde_yml::from_str::<Value>(yaml).unwrap();
         match value {
             Value::String(string) => assert_eq!(string, *yaml),
-            _ => panic!("expected string. input={:?}, result={:?}", yaml, value),
+            _ => panic!(
+                "expected string. input={:?}, result={:?}",
+                yaml, value
+            ),
         }
     }
 }
@@ -472,7 +483,10 @@ fn test_stateful() {
 
     impl<'de> serde::de::DeserializeSeed<'de> for Seed {
         type Value = i64;
-        fn deserialize<D>(self, deserializer: D) -> Result<i64, D::Error>
+        fn deserialize<D>(
+            self,
+            deserializer: D,
+        ) -> Result<i64, D::Error>
         where
             D: serde::de::Deserializer<'de>,
         {
@@ -480,15 +494,24 @@ fn test_stateful() {
             impl<'de> serde::de::Visitor<'de> for Visitor {
                 type Value = i64;
 
-                fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+                fn expecting(
+                    &self,
+                    formatter: &mut std::fmt::Formatter,
+                ) -> std::fmt::Result {
                     write!(formatter, "an integer")
                 }
 
-                fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<i64, E> {
+                fn visit_i64<E: serde::de::Error>(
+                    self,
+                    v: i64,
+                ) -> Result<i64, E> {
                     Ok(v * self.0)
                 }
 
-                fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<i64, E> {
+                fn visit_u64<E: serde::de::Error>(
+                    self,
+                    v: u64,
+                ) -> Result<i64, E> {
                     Ok(v as i64 * self.0)
                 }
             }
@@ -562,23 +585,28 @@ fn test_no_required_fields() {
 
     for document in ["", "# comment\n"] {
         let expected = NoRequiredFields { optional: None };
-        let deserialized: NoRequiredFields = serde_yml::from_str(document).unwrap();
+        let deserialized: NoRequiredFields =
+            serde_yml::from_str(document).unwrap();
         assert_eq!(expected, deserialized);
 
         let expected = Vec::<String>::new();
-        let deserialized: Vec<String> = serde_yml::from_str(document).unwrap();
+        let deserialized: Vec<String> =
+            serde_yml::from_str(document).unwrap();
         assert_eq!(expected, deserialized);
 
         let expected = BTreeMap::new();
-        let deserialized: BTreeMap<char, usize> = serde_yml::from_str(document).unwrap();
+        let deserialized: BTreeMap<char, usize> =
+            serde_yml::from_str(document).unwrap();
         assert_eq!(expected, deserialized);
 
         let expected = None;
-        let deserialized: Option<String> = serde_yml::from_str(document).unwrap();
+        let deserialized: Option<String> =
+            serde_yml::from_str(document).unwrap();
         assert_eq!(expected, deserialized);
 
         let expected = Value::Null;
-        let deserialized: Value = serde_yml::from_str(document).unwrap();
+        let deserialized: Value =
+            serde_yml::from_str(document).unwrap();
         assert_eq!(expected, deserialized);
     }
 }

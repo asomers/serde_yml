@@ -185,6 +185,11 @@
 )]
 #![crate_name = "serde_yml"]
 #![crate_type = "lib"]
+use crate::utilities::uuid::generate_unique_string;
+use dtt::DateTime;
+use rlg::{log_format::LogFormat, log_level::LogLevel, macro_log};
+use std::{fs::File, io::Write};
+
 pub use crate::de::{from_reader, from_slice, from_str, Deserializer};
 pub use crate::error::{Error, Location, Result};
 pub use crate::ser::{to_string, to_writer, Serializer};
@@ -192,6 +197,15 @@ pub use crate::ser::{to_string, to_writer, Serializer};
 pub use crate::value::{
     from_value, to_value, Index, Number, Sequence, Value,
 };
+
+/// The `generators` module contains functions for generating data.
+pub mod generators;
+/// The `macros` module contains functions for generating macros.
+pub mod macros;
+/// The `models` module contains the data models for the library.
+pub mod models;
+/// The `utilities` module contains utility functions for the library.
+pub mod utilities;
 
 #[doc(inline)]
 pub use crate::mapping::Mapping;
@@ -215,4 +229,52 @@ mod private {
     impl Sealed for String {}
     impl Sealed for crate::Value {}
     impl<T> Sealed for &T where T: ?Sized + Sealed {}
+}
+
+/// Run the Serde YML tool.
+pub fn run() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let date = DateTime::new();
+    let iso = date.iso_8601;
+
+    // Open the log file for appending
+    let mut log_file = File::create("./serde_yml.log")?;
+
+    // Generate ASCII art for the tool's CLI
+    let log = macro_log!(
+        &generate_unique_string(),
+        &iso,
+        &LogLevel::INFO,
+        "deps",
+        "ASCII art generation event started.",
+        &LogFormat::CLF
+    );
+    // Write the log to both the console and the file
+    writeln!(log_file, "{}", log)?;
+
+    // Printing the ASCII art to the console
+    println!("{}", macro_ascii!("Serde YML"));
+
+    let log = macro_log!(
+        &generate_unique_string(),
+        &iso,
+        &LogLevel::INFO,
+        "deps",
+        "ASCII art generation event completed.",
+        &LogFormat::CLF
+    );
+    // Write the log to both the console and the file
+    writeln!(log_file, "{}", log)?;
+
+    // Check the number of arguments, provide a welcome message if no arguments were passed
+    macro_log!(
+        &generate_unique_string(),
+        &iso,
+        &LogLevel::INFO,
+        "cli",
+        "Welcome to Serde YML! 👋",
+        &LogFormat::CLF
+    );
+    eprintln!("\n\nWelcome to Serde YML! 👋");
+
+    Ok(())
 }

@@ -14,7 +14,6 @@ use serde::{de::IntoDeserializer, Deserialize};
 use serde_derive::Serialize;
 use serde_yml::{Number, Value};
 
-
 #[test]
 fn test_nan() {
     let pos_nan = serde_yml::from_str::<Value>(".nan").unwrap();
@@ -25,8 +24,10 @@ fn test_nan() {
     assert!(neg_fake_nan.is_string());
 
     let significand_mask = 0xF_FFFF_FFFF_FFFF;
-    let bits = (f64::NAN.copysign(1.0).to_bits() ^ significand_mask) | 1;
-    let different_pos_nan = Value::Number(Number::from(f64::from_bits(bits)));
+    let bits =
+        (f64::NAN.copysign(1.0).to_bits() ^ significand_mask) | 1;
+    let different_pos_nan =
+        Value::Number(Number::from(f64::from_bits(bits)));
     assert_eq!(pos_nan, different_pos_nan);
 }
 
@@ -48,11 +49,15 @@ fn test_into_deserializer() {
     let s = String::deserialize(value.into_deserializer()).unwrap();
     assert_eq!(s, "xyz");
 
-    let value = serde_yml::from_str::<Value>("- first\n- second\n- third").unwrap();
-    let arr = Vec::<String>::deserialize(value.into_deserializer()).unwrap();
+    let value =
+        serde_yml::from_str::<Value>("- first\n- second\n- third")
+            .unwrap();
+    let arr =
+        Vec::<String>::deserialize(value.into_deserializer()).unwrap();
     assert_eq!(arr, &["first", "second", "third"]);
 
-    let value = serde_yml::from_str::<Value>("first: abc\nsecond: 99").unwrap();
+    let value =
+        serde_yml::from_str::<Value>("first: abc\nsecond: 99").unwrap();
     let test = Test::deserialize(value.into_deserializer()).unwrap();
     assert_eq!(
         test,
@@ -150,7 +155,8 @@ fn test_tagged() {
 
     let value = serde_yml::to_value(&Enum::Variant(0)).unwrap();
 
-    let deserialized: serde_yml::Value = serde_yml::from_value(value.clone()).unwrap();
+    let deserialized: serde_yml::Value =
+        serde_yml::from_value(value.clone()).unwrap();
     assert_eq!(value, deserialized);
 
     let serialized = serde_yml::to_value(&value).unwrap();

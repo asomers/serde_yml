@@ -1,0 +1,2 @@
+[alias]
+xtask = "run --package serde_yml --bin serde_yml --"

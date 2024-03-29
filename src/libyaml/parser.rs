@@ -78,8 +78,15 @@ impl<'input> Parser<'input> {
             if sys::yaml_parser_initialize(parser).fail {
                 panic!("malloc error: {}", Error::parse_error(parser));
             }
-            sys::yaml_parser_set_encoding(parser, sys::YAML_UTF8_ENCODING);
-            sys::yaml_parser_set_input_string(parser, input.as_ptr(), input.len() as u64);
+            sys::yaml_parser_set_encoding(
+                parser,
+                sys::YAML_UTF8_ENCODING,
+            );
+            sys::yaml_parser_set_input_string(
+                parser,
+                input.as_ptr(),
+                input.len() as u64,
+            );
             addr_of_mut!((*owned.ptr).input).write(input);
             Owned::assume_init(owned)
         };
@@ -116,42 +123,65 @@ unsafe fn convert_event<'input>(
         sys::YAML_STREAM_END_EVENT => Event::StreamEnd,
         sys::YAML_DOCUMENT_START_EVENT => Event::DocumentStart,
         sys::YAML_DOCUMENT_END_EVENT => Event::DocumentEnd,
-        sys::YAML_ALIAS_EVENT => {
-            Event::Alias(unsafe { optional_anchor(sys.data.alias.anchor) }.unwrap())
-        }
+        sys::YAML_ALIAS_EVENT => Event::Alias(
+            unsafe { optional_anchor(sys.data.alias.anchor) }.unwrap(),
+        ),
         sys::YAML_SCALAR_EVENT => Event::Scalar(Scalar {
             anchor: unsafe { optional_anchor(sys.data.scalar.anchor) },
             tag: unsafe { optional_tag(sys.data.scalar.tag) },
             value: Box::from(unsafe {
-                slice::from_raw_parts(sys.data.scalar.value, sys.data.scalar.length as usize)
+                slice::from_raw_parts(
+                    sys.data.scalar.value,
+                    sys.data.scalar.length as usize,
+                )
             }),
             #[allow(clippy::wildcard_in_or_patterns)]
             style: match unsafe { sys.data.scalar.style } {
                 sys::YAML_PLAIN_SCALAR_STYLE => ScalarStyle::Plain,
-                sys::YAML_SINGLE_QUOTED_SCALAR_STYLE => ScalarStyle::SingleQuoted,
-                sys::YAML_DOUBLE_QUOTED_SCALAR_STYLE => ScalarStyle::DoubleQuoted,
+                sys::YAML_SINGLE_QUOTED_SCALAR_STYLE => {
+                    ScalarStyle::SingleQuoted
+                }
+                sys::YAML_DOUBLE_QUOTED_SCALAR_STYLE => {
+                    ScalarStyle::DoubleQuoted
+                }
                 sys::YAML_LITERAL_SCALAR_STYLE => ScalarStyle::Literal,
                 sys::YAML_FOLDED_SCALAR_STYLE => ScalarStyle::Folded,
                 sys::YAML_ANY_SCALAR_STYLE | _ => unreachable!(),
             },
             repr: if let Cow::Borrowed(input) = input {
-                Some(&input[sys.start_mark.index as usize..sys.end_mark.index as usize])
+                Some(
+                    &input[sys.start_mark.index as usize
+                        ..sys.end_mark.index as usize],
+                )
             } else {
                 None
             },
         }),
-        sys::YAML_SEQUENCE_START_EVENT => Event::SequenceStart(SequenceStart {
-            anchor: unsafe { optional_anchor(sys.data.sequence_start.anchor) },
-            tag: unsafe { optional_tag(sys.data.sequence_start.tag) },
-        }),
+        sys::YAML_SEQUENCE_START_EVENT => {
+            Event::SequenceStart(SequenceStart {
+                anchor: unsafe {
+                    optional_anchor(sys.data.sequence_start.anchor)
+                },
+                tag: unsafe {
+                    optional_tag(sys.data.sequence_start.tag)
+                },
+            })
+        }
         sys::YAML_SEQUENCE_END_EVENT => Event::SequenceEnd,
-        sys::YAML_MAPPING_START_EVENT => Event::MappingStart(MappingStart {
-            anchor: unsafe { optional_anchor(sys.data.mapping_start.anchor) },
-            tag: unsafe { optional_tag(sys.data.mapping_start.tag) },
-        }),
+        sys::YAML_MAPPING_START_EVENT => {
+            Event::MappingStart(MappingStart {
+                anchor: unsafe {
+                    optional_anchor(sys.data.mapping_start.anchor)
+                },
+                tag: unsafe {
+                    optional_tag(sys.data.mapping_start.tag)
+                },
+            })
+        }
+        #[allow(clippy::unnecessary_literal_unwrap)]
         sys::YAML_MAPPING_END_EVENT => Event::MappingEnd,
         sys::YAML_NO_EVENT => unreachable!(),
-        _ => unimplemented!(),
+        _ => unreachable!(),
     }
 }
 
@@ -180,7 +210,10 @@ impl Debug for Scalar<'_> {
         struct LossySlice<'a>(&'a [u8]);
 
         impl Debug for LossySlice<'_> {
-            fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+            fn fmt(
+                &self,
+                formatter: &mut fmt::Formatter<'_>,
+            ) -> fmt::Result {
                 cstr::debug_lossy(self.0, formatter)
             }
         }
