@@ -174,7 +174,7 @@ jobs:
           RELEASE_URL: https://github.com/sebastienrousseau/serde_yml/releases
           TARGET: ${{ env.TARGET }}
 
-        run: |
+          run: |
           if [[ ! -f CHANGELOG.md ]]; then
             # Set path to changelog file
             changelog_file="${{ github.workspace }}/CHANGELOG.md"
