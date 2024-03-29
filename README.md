@@ -212,7 +212,7 @@ To use Serde YML in your Rust project, add the following to your `Cargo.toml` fi
 
 ```shell
 [dependencies]
-serde_yml = "0.0.1"
+serde_yml = "0.0.2"
 ```
 
 ## Semantic Versioning Policy
@@ -263,7 +263,7 @@ and support. A special thank you goes to [David Tolnay][16] and his work on
 [14]: https://codecov.io/gh/sebastienrousseau/serde_yml "Codecov"
 [15]: https://www.reddit.com/r/rust/ "Rust Reddit"
 [16]: https://github.com/dtolnay "David Tolnay"
-[17]: https://github.com/dtolnay/serde-yaml "Serde YAML"
+[17]: https://github.com/dtolnay/serde_yml "Serde YAML"
 
 
 [banner]: https://kura.pro/serde_yml/images/titles/title-serde_yml.svg "Serde YML Banner"
@@ -271,6 +271,6 @@ and support. A special thank you goes to [David Tolnay][16] and his work on
 [crates-badge]: https://img.shields.io/crates/v/serde_yml.svg?style=for-the-badge "Crates.io Badge"
 [divider]: https://kura.pro/common/images/elements/divider.svg "divider"
 [docs-badge]: https://img.shields.io/docsrs/serde_yml.svg?style=for-the-badge "Docs.rs Badge"
-[libs-badge]: https://img.shields.io/badge/lib.rs-v0.0.1-orange.svg?style=for-the-badge "Lib.rs Badge"
+[libs-badge]: https://img.shields.io/badge/lib.rs-v0.0.2-orange.svg?style=for-the-badge "Lib.rs Badge"
 [license-badge]: https://img.shields.io/crates/l/serde_yml.svg?style=for-the-badge "License Badge"
 [made-with-rust-badge]: https://img.shields.io/badge/rust-f04041?style=for-the-badge&labelColor=c0282d&logo=rust "Made With Rust Badge"

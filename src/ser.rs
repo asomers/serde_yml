@@ -359,11 +359,11 @@ where
             }
 
             fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> {
-                Ok(if crate::de::digits_but_not_number(v) {
-                    ScalarStyle::SingleQuoted
+                if crate::de::ambiguous_string(v) {
+                    Ok(ScalarStyle::SingleQuoted)
                 } else {
-                    ScalarStyle::Any
-                })
+                    Ok(ScalarStyle::Any)
+                }
             }
 
             fn visit_unit<E>(self) -> Result<Self::Value, E> {
@@ -371,23 +371,16 @@ where
             }
         }
 
-        let style = match value {
-            // Backwards compatibility with old YAML boolean scalars.
-            // See https://yaml.org/type/bool.html
-            "y" | "Y" | "yes" | "Yes" | "YES" | "n" | "N" | "no"
-            | "No" | "NO" | "true" | "True" | "TRUE" | "false"
-            | "False" | "FALSE" | "on" | "On" | "ON" | "off"
-            | "Off" | "OFF" => ScalarStyle::SingleQuoted,
-            _ if value.contains('\n') => ScalarStyle::Literal,
-            _ => {
-                let result = crate::de::visit_untagged_scalar(
-                    InferScalarStyle,
-                    value,
-                    None,
-                    libyaml::parser::ScalarStyle::Plain,
-                );
-                result.unwrap_or(ScalarStyle::Any)
-            }
+        let style = if value.contains('\n') {
+            ScalarStyle::Literal
+        } else {
+            let result = crate::de::visit_untagged_scalar(
+                InferScalarStyle,
+                value,
+                None,
+                libyaml::parser::ScalarStyle::Plain,
+            );
+            result.unwrap_or(ScalarStyle::Any)
         };
 
         self.emit_scalar(Scalar {
