@@ -55,7 +55,6 @@ jobs:
           publish_dir: ./target/doc
           publish_branch: gh-pages
           cname: true
-          clean: true
           commit_message: Deploy documentation at ${{ github.sha }}
-          commit_user_name: github-actions
-          commit_user_email: actions@users.noreply.github.com
+          user_name: github-actions
+          user_email: actions@users.noreply.github.com
