@@ -68,6 +68,144 @@ fn main() -> Result<(), serde_yml::Error> {
 }
 ```
 
+## Examples
+
+### Serializing and Deserializing a HashMap
+
+```rust
+use std::collections::HashMap;
+
+fn main() -> Result<(), serde_yml::Error> {
+  let mut map = HashMap::new();
+  map.insert("name".to_string(), &"John");
+  map.insert("age".to_string(), &"30");
+
+  let yaml = serde_yml::to_string(&map)?;
+  println!("Serialized YAML: {}", yaml);
+
+  let deserialized_map: HashMap<String, serde_yml::Value> = serde_yml::from_str(&yaml)?;
+   println!("Deserialized map: {:?}", deserialized_map);
+
+   Ok(())
+}
+```
+
+### Serializing and Deserializing Custom Structs
+
+```rust
+use serde::{Serialize, Deserialize};
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Person {
+    name: String,
+    age: u32,
+    city: String,
+}
+
+fn main() -> Result<(), serde_yml::Error> {
+  let person = Person {
+      name: "Alice".to_string(),
+      age: 25,
+      city: "New York".to_string(),
+  };
+
+  let yaml = serde_yml::to_string(&person)?;
+  println!("Serialized YAML: {}", yaml);
+
+  let deserialized_person: Person = serde_yml::from_str(&yaml)?;
+  println!("Deserialized person: {:?}", deserialized_person);
+
+  Ok(())
+}
+```
+
+### Using Serde derive
+
+It can also be used with Serde's derive macros to handle structs and enums
+defined in your program.
+
+Structs serialize in the obvious way:
+
+```rust
+# use serde_derive::{Serialize, Deserialize};
+
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
+struct Point {
+    x: f64,
+    y: f64,
+}
+
+fn main() -> Result<(), serde_yml::Error> {
+    let point = Point { x: 1.0, y: 2.0 };
+
+    let yaml = serde_yml::to_string(&point)?;
+    assert_eq!(yaml, "x: 1.0\n'y': 2.0\n");
+
+    let deserialized_point: Point = serde_yml::from_str(&yaml)?;
+    assert_eq!(point, deserialized_point);
+    Ok(())
+}
+```
+
+Enums serialize using YAML's `!tag` syntax to identify the variant name.
+
+```rust
+use serde_derive::{Serialize, Deserialize};
+
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
+enum Enum {
+    Unit,
+    Newtype(usize),
+    Tuple(usize, usize, usize),
+    Struct { x: f64, y: f64 },
+}
+
+fn main() -> Result<(), serde_yml::Error> {
+    let yaml = "
+        - !Newtype 1
+        - !Tuple [0, 0, 0]
+        - !Struct {x: 1.0, y: 2.0}
+    ";
+    let values: Vec<Enum> = serde_yml::from_str(yaml).unwrap();
+    assert_eq!(values[0], Enum::Newtype(1));
+    assert_eq!(values[1], Enum::Tuple(0, 0, 0));
+    assert_eq!(values[2], Enum::Struct { x: 1.0, y: 2.0 });
+
+    // The last two in YAML's block style instead:
+    let yaml = "
+        - !Tuple
+        - 0
+        - 0
+        - 0
+        - !Struct
+        x: 1.0
+        'y': 2.0
+    ";
+    let values: Vec<Enum> = serde_yml::from_str(yaml).unwrap();
+    assert_eq!(values[0], Enum::Tuple(0, 0, 0));
+    assert_eq!(values[1], Enum::Struct { x: 1.0, y: 2.0 });
+
+    // Variants with no data can be written using !Tag or just the string name.
+    let yaml = "
+        - Unit  # serialization produces this one
+        - !Unit
+    ";
+    let values: Vec<Enum> = serde_yml::from_str(yaml).unwrap();
+    assert_eq!(values[0], Enum::Unit);
+    assert_eq!(values[1], Enum::Unit);
+
+    Ok(())
+}
+```
+
+## Best Practices and Common Pitfalls
+
+- When serializing large datasets, consider using `serde_yml::to_writer` to write the YAML output directly to a file or a writer instead of keeping the entire serialized string in memory.
+- Be cautious when deserializing untrusted YAML input, as it may contain unexpected or malicious data. Always validate and handle the deserialized data appropriately.
+- When working with custom structs or enums, ensure that they implement the necessary Serde traits (`Serialize` and `Deserialize`) for proper serialization and deserialization.
+- If you encounter any issues or have questions, refer to the library's documentation and examples for guidance. If the problem persists, consider opening an issue on the library's GitHub repository.
+
+
 ## Installation
 
 To use Serde YML in your Rust project, add the following to your `Cargo.toml` file:
