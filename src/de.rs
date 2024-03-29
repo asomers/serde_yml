@@ -3,25 +3,21 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT indicates dual licensing under Apache 2.0 or MIT licenses.
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
-use crate::error::{self, Error, ErrorImpl};
-use crate::libyaml::error::Mark;
-use crate::libyaml::parser::{
-    MappingStart, Scalar, ScalarStyle, SequenceStart,
+use crate::{
+    error::{self, Error, ErrorImpl},
+    libyaml::{
+        error::Mark,
+        parser::{MappingStart, Scalar, ScalarStyle, SequenceStart},
+        tag::Tag,
+    },
+    loader::{Document, Loader},
+    path::Path,
 };
-use crate::libyaml::tag::Tag;
-use crate::loader::{Document, Loader};
-use crate::path::Path;
-use serde::de::value::StrDeserializer;
 use serde::de::{
-    self, Deserialize, DeserializeOwned, DeserializeSeed, Expected,
-    IgnoredAny, Unexpected, Visitor,
+    self, value::StrDeserializer, Deserialize, DeserializeOwned,
+    DeserializeSeed, Expected, IgnoredAny, Unexpected, Visitor,
 };
-use std::fmt;
-use std::io;
-use std::mem;
-use std::num::ParseIntError;
-use std::str;
-use std::sync::Arc;
+use std::{fmt, io, mem, num::ParseIntError, str, sync::Arc};
 
 type Result<T, E = Error> = std::result::Result<T, E>;
 
@@ -77,24 +73,108 @@ pub(crate) enum Progress<'de> {
 }
 
 impl<'de> Deserializer<'de> {
-    /// Creates a YAML deserializer from a `&str`.
+    /// Deserializes an instance of type `T` from a string of YAML text.
+    ///
+    /// This function takes a string slice containing YAML data and attempts to parse and
+    /// deserialize it into an instance of the type `T`. The type must implement the `Deserialize`
+    /// trait from Serde. The function returns a result, which is either the deserialized
+    /// type `T` or an error if the deserialization process fails.
+    ///
+    /// # Errors
+    ///
+    /// This function returns an error if the YAML text does not correctly represent the
+    /// expected type `T`. Errors can arise from incorrect YAML syntax, type mismatches,
+    /// missing required fields, and other deserialization issues.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use serde_yml::from_str;
+    /// use serde::Deserialize;
+    ///
+    /// #[derive(Debug, Deserialize)]
+    /// struct Config {
+    ///     name: String,
+    ///     age: u32,
+    /// }
+    ///
+    /// let yaml_data = r#"
+    /// name: John Doe
+    /// age: 30
+    /// "#;
+    /// let config: Config = from_str(yaml_data).unwrap();
+    /// println!("{:?}", config); // Config { name: "John Doe", age: 30 }
+    /// ```
     #[allow(clippy::should_implement_trait)]
     pub fn from_str(s: &'de str) -> Self {
         let progress = Progress::Str(s);
         Deserializer { progress }
     }
 
-    /// Creates a YAML deserializer from a `&[u8]`.
+    /// Deserializes an instance of type `T` from bytes of YAML text.
+    ///
+    /// Similar to `from_str`, but instead of a string slice, it operates on a byte slice. This
+    /// is useful when working with binary data or data read from non-text sources.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the byte slice does not represent a valid YAML sequence or if it
+    /// cannot be deserialized into type `T` due to type mismatches, missing fields, etc.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use serde_yml::from_slice;
+    /// use serde::Deserialize;
+    ///
+    /// #[derive(Debug, Deserialize)]
+    /// struct Item {
+    ///     name: String,
+    ///     quantity: u32,
+    /// }
+    ///
+    /// let bytes = b"name: Widget\nquantity: 100";
+    /// let item: Item = from_slice(bytes).unwrap();
+    /// println!("{:?}", item); // Item { name: "Widget", quantity: 100 }
+    ///
     pub fn from_slice(v: &'de [u8]) -> Self {
         let progress = Progress::Slice(v);
         Deserializer { progress }
     }
 
-    /// Creates a YAML deserializer from an `io::Read`.
+    /// Deserializes an instance of type `T` from an IO stream of YAML.
     ///
-    /// Reader-based deserializer do not support deserializing borrowed types
-    /// like `&str`, since the `std::io::Read` trait has no non-copying methods
-    /// -- everything it does involves copying bytes out of the data source.
+    /// This function is useful when you need to deserialize data directly from a stream, such as
+    /// reading from a file or over the network. It accepts any type that implements the `io::Read`
+    /// trait. As with `from_str`, the target type `T` must implement the `Deserialize` trait.
+    ///
+    /// # Errors
+    ///
+    /// Deserialization might fail due to IO errors (e.g., if the stream is not readable), YAML syntax
+    /// errors, or if the data does not fit the expected structure of type `T`. In such cases, the
+    /// function returns an error.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use serde_yml::from_reader;
+    /// use serde::Deserialize;
+    /// use std::io::Cursor;
+    ///
+    /// #[derive(Debug, Deserialize)]
+    /// struct Config {
+    ///     name: String,
+    ///     age: u32,
+    /// }
+    ///
+    /// // Simulate file reading with a cursor over a byte slice.
+    /// let data = b"name: Jane Doe\nage: 25";
+    /// let cursor = Cursor::new(data);
+    ///
+    /// let config: Config = from_reader(cursor).unwrap();
+    /// println!("{:?}", config); // Config { name: "Jane Doe", age: 25 }
+    /// ```
+    ///
     pub fn from_reader<R>(rdr: R) -> Self
     where
         R: io::Read + 'de,
@@ -533,7 +613,7 @@ impl<'de, 'document> DeserializerFromEvents<'de, 'document> {
         }
 
         let mut stack = Vec::new();
-
+        #[allow(clippy::never_loop)]
         loop {
             match self.next_event()? {
                 Event::Alias(_) | Event::Scalar(_) | Event::Void => {}
@@ -1236,6 +1316,39 @@ pub(crate) fn digits_but_not_number(scalar: &str) -> bool {
         && scalar[1..].bytes().all(|b| b.is_ascii_digit())
 }
 
+/// If a string looks like it could be parsed as some other type by some YAML
+/// parser on the round trip, or could otherwise be ambiguous, then we should
+/// serialize it with quotes to be safe.
+/// This avoids the norway problem https://hitchdev.com/strictyaml/why/implicit-typing-removed/
+#[allow(clippy::needless_borrow)]
+#[allow(clippy::len_zero)]
+#[allow(clippy::bytes_nth)]
+pub(crate) fn ambiguous_string(scalar: &str) -> bool {
+    let lower_scalar = scalar.to_lowercase();
+    parse_bool(&lower_scalar).is_some()
+        || parse_null(&lower_scalar.as_bytes()).is_some()
+        || lower_scalar.len() == 0
+        // Can unwrap because we just checked the length.
+        || lower_scalar.bytes().nth(0).unwrap().is_ascii_digit()
+        || lower_scalar.starts_with('-')
+        || lower_scalar.starts_with('.')
+        || lower_scalar.starts_with('+')
+        // Things that we don't parse as bool but could be parsed as bool by
+        // other YAML parsers.
+        || lower_scalar == "y"
+        || lower_scalar == "yes"
+        || lower_scalar == "n"
+        || lower_scalar == "no"
+        || lower_scalar == "on"
+        || lower_scalar == "off"
+        || lower_scalar == "true"
+        || lower_scalar == "false"
+        || lower_scalar == "null"
+        || lower_scalar == "nil"
+        || lower_scalar == "~"
+        || lower_scalar == "nan"
+}
+
 pub(crate) fn visit_int<'de, V>(
     visitor: V,
     v: &str,
@@ -1356,7 +1469,7 @@ impl<'de, 'document> de::Deserializer<'de>
     for &mut DeserializerFromEvents<'de, 'document>
 {
     type Error = Error;
-
+    #[deny(clippy::never_loop)]
     fn deserialize_any<V>(self, visitor: V) -> Result<V::Value>
     where
         V: Visitor<'de>,
@@ -2075,13 +2188,38 @@ impl<'de, 'document> de::Deserializer<'de>
 
 /// Deserialize an instance of type `T` from a string of YAML text.
 ///
-/// This conversion can fail if the structure of the Value does not match the
-/// structure expected by `T`, for example if `T` is a struct type but the Value
-/// contains something other than a YAML map. It can also fail if the structure
-/// is correct but `T`'s implementation of `Deserialize` decides that something
-/// is wrong with the data, for example required struct fields are missing from
-/// the YAML map or some number is too big to fit in the expected primitive
-/// type.
+/// This function takes a string slice containing YAML data and attempts to parse and
+/// deserialize it into an instance of the type `T`. The type must implement the `Deserialize`
+/// trait from Serde.
+///
+/// # Errors
+///
+/// This conversion can fail if the structure of the YAML does not match the structure expected
+/// by `T`, for example if `T` is a struct type but the YAML contains something other than a
+/// mapping. It can also fail if the structure is correct but `T`'s implementation of
+/// `Deserialize` decides that something is wrong with the data, for example required struct
+/// fields are missing from the YAML mapping or some number is too big to fit in the expected
+/// primitive type.
+///
+/// # Examples
+///
+/// ```
+/// use serde::Deserialize;
+///
+/// #[derive(Debug, Deserialize)]
+/// struct Person {
+///     name: String,
+///     age: u32,
+/// }
+///
+/// let yaml_str = r#"
+/// name: John Doe
+/// age: 30
+/// "#;
+///
+/// let person: Person = serde_yml::from_str(yaml_str).unwrap();
+/// println!("{:?}", person);
+/// ```
 pub fn from_str<'de, T>(s: &'de str) -> Result<T>
 where
     T: Deserialize<'de>,
@@ -2091,13 +2229,40 @@ where
 
 /// Deserialize an instance of type `T` from an IO stream of YAML.
 ///
-/// This conversion can fail if the structure of the Value does not match the
-/// structure expected by `T`, for example if `T` is a struct type but the Value
-/// contains something other than a YAML map. It can also fail if the structure
-/// is correct but `T`'s implementation of `Deserialize` decides that something
-/// is wrong with the data, for example required struct fields are missing from
-/// the YAML map or some number is too big to fit in the expected primitive
-/// type.
+/// This function reads YAML data from an IO stream and attempts to parse and deserialize it
+/// into an instance of the type `T`. The type must implement the `DeserializeOwned` trait
+/// from Serde, which means it must be able to be deserialized without any borrowed data.
+///
+/// # Errors
+///
+/// This conversion can fail if the structure of the YAML does not match the structure expected
+/// by `T`, for example if `T` is a struct type but the YAML contains something other than a
+/// mapping. It can also fail if the structure is correct but `T`'s implementation of
+/// `Deserialize` decides that something is wrong with the data, for example required struct
+/// fields are missing from the YAML mapping or some number is too big to fit in the expected
+/// primitive type.
+///
+/// # Examples
+///
+/// ```
+/// use serde::Deserialize;
+/// use std::io::Cursor;
+///
+/// #[derive(Debug, Deserialize)]
+/// struct Config {
+///     debug: bool,
+///     port: u16,
+/// }
+///
+/// let yaml_data = br#"
+/// debug: true
+/// port: 8080
+/// "#;
+///
+/// let reader = Cursor::new(yaml_data);
+/// let config: Config = serde_yml::from_reader(reader).unwrap();
+/// println!("{:?}", config);
+/// ```
 pub fn from_reader<R, T>(rdr: R) -> Result<T>
 where
     R: io::Read,
@@ -2108,13 +2273,38 @@ where
 
 /// Deserialize an instance of type `T` from bytes of YAML text.
 ///
-/// This conversion can fail if the structure of the Value does not match the
-/// structure expected by `T`, for example if `T` is a struct type but the Value
-/// contains something other than a YAML map. It can also fail if the structure
-/// is correct but `T`'s implementation of `Deserialize` decides that something
-/// is wrong with the data, for example required struct fields are missing from
-/// the YAML map or some number is too big to fit in the expected primitive
-/// type.
+/// This function takes a byte slice containing YAML data and attempts to parse and
+/// deserialize it into an instance of the type `T`. The type must implement the `Deserialize`
+/// trait from Serde.
+///
+/// # Errors
+///
+/// This conversion can fail if the structure of the YAML does not match the structure expected
+/// by `T`, for example if `T` is a struct type but the YAML contains something other than a
+/// mapping. It can also fail if the structure is correct but `T`'s implementation of
+/// `Deserialize` decides that something is wrong with the data, for example required struct
+/// fields are missing from the YAML mapping or some number is too big to fit in the expected
+/// primitive type.
+///
+/// # Examples
+///
+/// ```
+/// use serde::Deserialize;
+///
+/// #[derive(Debug, Deserialize)]
+/// struct Point {
+///     x: i32,
+///     y: i32,
+/// }
+///
+/// let yaml_data = br#"
+/// x: 10
+/// y: 20
+/// "#;
+///
+/// let point: Point = serde_yml::from_slice(yaml_data).unwrap();
+/// println!("{:?}", point);
+/// ```
 pub fn from_slice<'de, T>(v: &'de [u8]) -> Result<T>
 where
     T: Deserialize<'de>,
