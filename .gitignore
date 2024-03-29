@@ -1,0 +1,8 @@
+*.DS_Store
+*.profraw
+*.log
+/.vscode/
+/target/
+build
+Cargo.lock
+Icon?
