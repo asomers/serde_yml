@@ -4,7 +4,7 @@
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
 use crate::libyaml::{emitter, error as libyaml};
-use crate::path::Path;
+use crate::modules::path::Path;
 use serde::{de, ser};
 use std::error::Error as StdError;
 use std::fmt::{self, Debug, Display};

@@ -4,7 +4,7 @@
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
 use crate::de;
-use crate::error::{self, Error, ErrorImpl};
+use crate::modules::error::{self, Error, ErrorImpl};
 use serde::de::{Unexpected, Visitor};
 use serde::{
     forward_to_deserialize_any, Deserialize, Deserializer, Serialize,

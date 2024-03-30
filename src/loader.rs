@@ -4,9 +4,9 @@
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
 use crate::de::{Event, Progress};
-use crate::error::{self, Error, ErrorImpl, Result};
 use crate::libyaml::error::Mark;
 use crate::libyaml::parser::{Event as YamlEvent, Parser};
+use crate::modules::error::{self, Error, ErrorImpl, Result};
 use std::borrow::Cow;
 use std::collections::BTreeMap;
 use std::sync::Arc;

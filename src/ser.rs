@@ -7,11 +7,11 @@
 //!
 //! This module provides YAML serialization with the type `Serializer`.
 
-use crate::error::{self, Error, ErrorImpl};
 use crate::libyaml;
 use crate::libyaml::emitter::{
     Emitter, Event, Mapping, Scalar, ScalarStyle, Sequence,
 };
+use crate::modules::error::{self, Error, ErrorImpl};
 use crate::value::tagged::{self, MaybeTag};
 use serde::de::Visitor;
 use serde::ser::{self, Serializer as _};

@@ -3,12 +3,12 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT indicates dual licensing under Apache 2.0 or MIT licenses.
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
+use crate::modules::error::Error;
 use crate::value::de::{
     MapDeserializer, MapRefDeserializer, SeqDeserializer,
     SeqRefDeserializer,
 };
 use crate::value::Value;
-use crate::Error;
 use serde::de::value::{BorrowedStrDeserializer, StrDeserializer};
 use serde::de::{
     Deserialize, DeserializeSeed, Deserializer, EnumAccess, Error as _,
