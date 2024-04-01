@@ -7,12 +7,14 @@
 mod tests {
     use serde_yml::modules::path::Path;
 
+    // Tests for Path::Root variant
     #[test]
     fn test_path_root() {
         let path = Path::Root;
         assert_eq!(format!("{}", path), ".");
     }
 
+    // Tests for Path::Seq variant
     #[test]
     fn test_path_seq() {
         let root = Path::Root;
@@ -23,6 +25,7 @@ mod tests {
         assert_eq!(format!("{}", path), "\\[42\\]");
     }
 
+    // Tests for Path::Map variant
     #[test]
     fn test_path_map() {
         let root = Path::Root;
@@ -33,6 +36,7 @@ mod tests {
         assert_eq!(format!("{}", path), "key");
     }
 
+    // Tests for Path::Alias variant
     #[test]
     fn test_path_alias() {
         let root = Path::Root;
@@ -40,6 +44,7 @@ mod tests {
         assert_eq!(format!("{}", path), "");
     }
 
+    // Tests for Path::Unknown variant
     #[test]
     fn test_path_unknown() {
         let root = Path::Root;
@@ -47,6 +52,7 @@ mod tests {
         assert_eq!(format!("{}", path), "?");
     }
 
+    // Tests for nested paths
     #[test]
     fn test_path_nested() {
         let root = Path::Root;

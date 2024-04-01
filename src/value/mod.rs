@@ -14,10 +14,14 @@ mod ser;
 pub(crate) mod tagged;
 
 use crate::modules::error::{self, Error, ErrorImpl};
-use serde::de::{Deserialize, DeserializeOwned, IntoDeserializer};
-use serde::Serialize;
-use std::hash::{Hash, Hasher};
-use std::mem;
+use serde::{
+    de::{Deserialize, DeserializeOwned, IntoDeserializer},
+    Serialize,
+};
+use std::{
+    hash::{Hash, Hasher},
+    mem,
+};
 
 pub use self::index::Index;
 pub use self::ser::Serializer;
@@ -85,16 +89,30 @@ impl Default for Value {
 /// A YAML sequence in which the elements are `serde_yml::Value`.
 pub type Sequence = Vec<Value>;
 
-/// Convert a `T` into `serde_yml::Value` which is an enum that can represent
-/// any valid YAML data.
+/// Converts a serializable value into a `serde_yml::Value`.
 ///
-/// This conversion can fail if `T`'s implementation of `Serialize` decides to
-/// return an error.
+/// This function is a convenience wrapper around the `serde_yml::value::Serializer`.
+/// It allows serializing a value of type `T` into a `serde_yml::Value` using the
+/// default serializer configuration.
+///
+/// # Examples
 ///
 /// ```
-/// # use serde_yml::Value;
-/// let val = serde_yml::to_value("s").unwrap();
-/// assert_eq!(val, Value::String("s".to_owned()));
+/// use serde::Serialize;
+/// use serde_yml::to_value;
+///
+/// #[derive(Serialize)]
+/// struct User {
+///     name: String,
+///     age: u32,
+/// }
+///
+/// let user = User {
+///     name: "John Doe".to_string(),
+///     age: 30,
+/// };
+///
+/// let yaml_value = to_value(user).unwrap();
 /// ```
 pub fn to_value<T>(value: T) -> Result<Value, Error>
 where
