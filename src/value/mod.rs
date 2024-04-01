@@ -11,7 +11,8 @@ mod from;
 mod index;
 mod partial_eq;
 mod ser;
-pub(crate) mod tagged;
+/// A representation of YAML's `!Tag` syntax, used for enums.
+pub mod tagged;
 
 use crate::modules::error::{self, Error, ErrorImpl};
 use serde::{

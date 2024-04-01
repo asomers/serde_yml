@@ -804,7 +804,13 @@ impl<'de> Deserializer<'de> for &'de Value {
             Value::String(v) => visitor.visit_borrowed_str(v),
             Value::Sequence(v) => visit_sequence_ref(v, visitor),
             Value::Mapping(v) => visit_mapping_ref(v, visitor),
-            Value::Tagged(tagged) => visitor.visit_enum(&**tagged),
+            Value::Tagged(tagged) => {
+                let cloned_tagged = tagged;
+                visitor.visit_enum(EnumDeserializer {
+                    tag: tagged::nobang(&cloned_tagged.tag.string),
+                    value: Some(cloned_tagged.clone().value),
+                })
+            }
         }
     }
 
@@ -1136,7 +1142,7 @@ impl<'de> VariantAccess<'de> for VariantRefDeserializer<'de> {
 
     fn unit_variant(self) -> Result<(), Error> {
         match self.value {
-            Some(value) => value.unit_variant(),
+            Some(value) => <Value as Clone>::clone(value).unit_variant(),
             None => Ok(()),
         }
     }
@@ -1146,7 +1152,7 @@ impl<'de> VariantAccess<'de> for VariantRefDeserializer<'de> {
         T: DeserializeSeed<'de>,
     {
         match self.value {
-            Some(value) => value.newtype_variant_seed(seed),
+            Some(value) => <Value as Clone>::clone(value).newtype_variant_seed(seed),
             None => Err(Error::invalid_type(
                 Unexpected::UnitVariant,
                 &"newtype variant",
@@ -1163,7 +1169,7 @@ impl<'de> VariantAccess<'de> for VariantRefDeserializer<'de> {
         V: Visitor<'de>,
     {
         match self.value {
-            Some(value) => value.tuple_variant(len, visitor),
+            Some(value) => <Value as Clone>::clone(value).tuple_variant(len, visitor),
             None => Err(Error::invalid_type(
                 Unexpected::UnitVariant,
                 &"tuple variant",
@@ -1180,7 +1186,7 @@ impl<'de> VariantAccess<'de> for VariantRefDeserializer<'de> {
         V: Visitor<'de>,
     {
         match self.value {
-            Some(value) => value.struct_variant(fields, visitor),
+            Some(value) => <Value as Clone>::clone(value).struct_variant(fields, visitor),
             None => Err(Error::invalid_type(
                 Unexpected::UnitVariant,
                 &"struct variant",
