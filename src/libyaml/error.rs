@@ -4,9 +4,11 @@
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
 use crate::libyaml::cstr::CStr;
-use std::fmt::{self, Debug, Display};
-use std::mem::MaybeUninit;
-use std::ptr::NonNull;
+use std::{
+    fmt::{self, Debug, Display},
+    mem::MaybeUninit,
+    ptr::NonNull,
+};
 #[allow(clippy::unsafe_removed_from_name)]
 use unsafe_libyaml as sys;
 

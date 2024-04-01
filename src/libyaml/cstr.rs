@@ -3,11 +3,12 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT indicates dual licensing under Apache 2.0 or MIT licenses.
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
-use std::fmt::{self, Debug, Display, Write as _};
-use std::marker::PhantomData;
-use std::ptr::NonNull;
-use std::slice;
-use std::str;
+use std::{
+    fmt::{self, Debug, Display, Write as _},
+    marker::PhantomData,
+    ptr::NonNull,
+    slice, str,
+};
 
 #[derive(Copy, Clone)]
 pub(crate) struct CStr<'a> {

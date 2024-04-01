@@ -4,14 +4,14 @@
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
 use crate::{
-    error::{self, Error, ErrorImpl},
     libyaml::{
         error::Mark,
         parser::{MappingStart, Scalar, ScalarStyle, SequenceStart},
         tag::Tag,
     },
     loader::{Document, Loader},
-    path::Path,
+    modules::error::{self, Error, ErrorImpl},
+    modules::path::Path,
 };
 use serde::de::{
     self, value::StrDeserializer, Deserialize, DeserializeOwned,

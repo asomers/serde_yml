@@ -10,7 +10,7 @@
 //! ## Seamless YAML Serialization for [Rust][03].
 //!
 //! [![Crates.io](https://img.shields.io/crates/v/serde_yml.svg?style=for-the-badge&color=success&labelColor=27A006)](https://crates.io/crates/serde_yml "Crates.io")
-//! [![Lib.rs](https://img.shields.io/badge/lib.rs-v0.0.2-success.svg?style=for-the-badge&color=8A48FF&labelColor=6F36E4)](https://lib.rs/crates/serde_yml "Lib.rs")
+//! [![Lib.rs](https://img.shields.io/badge/lib.rs-v0.0.3-success.svg?style=for-the-badge&color=8A48FF&labelColor=6F36E4)](https://lib.rs/crates/serde_yml "Lib.rs")
 //! [![License](https://img.shields.io/crates/l/serde_yml.svg?style=for-the-badge&color=007EC6&labelColor=03589B)](https://opensource.org/license/apache-2-0/ "MIT or Apache License, Version 2.0")
 //! [![Rust](https://img.shields.io/badge/rust-f04041?style=for-the-badge&labelColor=c0282d&logo=rust)](https://www.rust-lang.org "Rust")
 //!
@@ -191,7 +191,7 @@ use rlg::{log_format::LogFormat, log_level::LogLevel, macro_log};
 use std::{fs::File, io::Write};
 
 pub use crate::de::{from_reader, from_slice, from_str, Deserializer};
-pub use crate::error::{Error, Location, Result};
+pub use crate::modules::error::{Error, Location, Result};
 pub use crate::ser::{to_string, to_writer, Serializer};
 #[doc(inline)]
 pub use crate::value::{
@@ -211,12 +211,13 @@ pub mod utilities;
 pub use crate::mapping::Mapping;
 
 mod de;
-mod error;
 mod libyaml;
 mod loader;
 pub mod mapping;
+/// The `modules` module contains the library's modules.
+pub mod modules;
+
 mod number;
-mod path;
 mod ser;
 pub mod value;
 pub mod with;

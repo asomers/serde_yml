@@ -4,6 +4,7 @@
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
 use crate::Value;
+use crate::partialeq_numeric;
 
 impl PartialEq<str> for Value {
     /// Compare `str` with YAML value
@@ -67,30 +68,6 @@ where
     U: Into<T>,
 {
     i == other
-}
-
-macro_rules! partialeq_numeric {
-    ($([$($ty:ty)*], $conversion:ident, $base:ty)*) => {
-        $($(
-            impl PartialEq<$ty> for Value {
-                fn eq(&self, other: &$ty) -> bool {
-                    self.$conversion().map_or(false, |i| compare_numeric(i, (*other).try_into().unwrap()))
-                }
-            }
-
-            impl PartialEq<$ty> for &Value {
-                fn eq(&self, other: &$ty) -> bool {
-                    self.$conversion().map_or(false, |i| compare_numeric(i, (*other).try_into().unwrap()))
-                }
-            }
-
-            impl PartialEq<$ty> for &mut Value {
-                fn eq(&self, other: &$ty) -> bool {
-                    self.$conversion().map_or(false, |i| compare_numeric(i, (*other).try_into().unwrap()))
-                }
-            }
-        )*)*
-    }
 }
 
 partialeq_numeric! {

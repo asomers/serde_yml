@@ -3,10 +3,12 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT indicates dual licensing under Apache 2.0 or MIT licenses.
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
-use std::marker::PhantomData;
-use std::mem::{self, MaybeUninit};
-use std::ops::Deref;
-use std::ptr::{addr_of, NonNull};
+use std::{
+    marker::PhantomData,
+    mem::{self, MaybeUninit},
+    ops::Deref,
+    ptr::{addr_of, NonNull},
+};
 
 pub(crate) struct Owned<T, Init = T> {
     ptr: NonNull<T>,

@@ -1,102 +1,72 @@
 // Copyright notice and licensing information.
-// These lines indicate the copyright of the software and its licensing terms.
 // SPDX-License-Identifier: Apache-2.0 OR MIT indicates dual licensing under Apache 2.0 or MIT licenses.
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
-use crate::value::de::{
-    MapDeserializer, MapRefDeserializer, SeqDeserializer,
-    SeqRefDeserializer,
+use crate::{
+    modules::error::Error,
+    value::{
+        de::{MapDeserializer, SeqDeserializer},
+        Value,
+    },
 };
-use crate::value::Value;
-use crate::Error;
-use serde::de::value::{BorrowedStrDeserializer, StrDeserializer};
-use serde::de::{
-    Deserialize, DeserializeSeed, Deserializer, EnumAccess, Error as _,
-    VariantAccess, Visitor,
+use serde::{
+    de::{
+        value::StrDeserializer, Deserialize, DeserializeSeed,
+        Deserializer, EnumAccess, Error as _, VariantAccess, Visitor,
+    },
+    forward_to_deserialize_any,
+    ser::{Serialize, SerializeMap, Serializer},
 };
-use serde::forward_to_deserialize_any;
-use serde::ser::{Serialize, SerializeMap, Serializer};
-use std::cmp::Ordering;
-use std::fmt::{self, Debug, Display};
-use std::hash::{Hash, Hasher};
-use std::mem;
+use std::{
+    cmp::Ordering,
+    convert::TryFrom,
+    fmt::{self, Debug, Display},
+    hash::{Hash, Hasher},
+    str::from_utf8,
+};
 
 /// A representation of YAML's `!Tag` syntax, used for enums.
-///
-/// Refer to the example code on [`TaggedValue`] for an example of deserializing
-/// tagged values.
 #[derive(Clone)]
 pub struct Tag {
-    pub(crate) string: String,
+    /// The string representation of the tag.
+    pub string: String,
 }
 
 /// A `Tag` + `Value` representing a tagged YAML scalar, sequence, or mapping.
-///
-/// ```
-/// use serde_yml::value::TaggedValue;
-/// use std::collections::BTreeMap;
-///
-/// let yaml = "
-///     scalar: !Thing x
-///     sequence_flow: !Thing [first]
-///     sequence_block: !Thing
-///       - first
-///     mapping_flow: !Thing {k: v}
-///     mapping_block: !Thing
-///       k: v
-/// ";
-///
-/// let data: BTreeMap<String, TaggedValue> = serde_yml::from_str(yaml).unwrap();
-/// assert!(data["scalar"].tag == "Thing");
-/// assert!(data["sequence_flow"].tag == "Thing");
-/// assert!(data["sequence_block"].tag == "Thing");
-/// assert!(data["mapping_flow"].tag == "Thing");
-/// assert!(data["mapping_block"].tag == "Thing");
-///
-/// // The leading '!' in tags are not significant. The following is also true.
-/// assert!(data["scalar"].tag == "!Thing");
-/// ```
 #[derive(Clone, PartialEq, PartialOrd, Hash, Debug)]
 pub struct TaggedValue {
-    #[allow(missing_docs)]
+    /// The tag of the tagged value.
     pub tag: Tag,
-    #[allow(missing_docs)]
+    /// The value of the tagged value.
     pub value: Value,
 }
 
+impl TaggedValue {
+    /// Creates a new `TaggedValue`.
+    pub fn copy(&self) -> TaggedValue {
+        TaggedValue {
+            tag: self.tag.clone(),
+            value: self.value.clone(),
+        }
+    }
+}
+
 impl Tag {
-    /// Create tag.
-    ///
-    /// The leading '!' is not significant. It may be provided, but does not
-    /// have to be. The following are equivalent:
-    ///
-    /// ```
-    /// use serde_yml::value::Tag;
-    ///
-    /// assert_eq!(Tag::new("!Thing"), Tag::new("Thing"));
-    ///
-    /// let tag = Tag::new("Thing");
-    /// assert!(tag == "Thing");
-    /// assert!(tag == "!Thing");
-    /// assert!(tag.to_string() == "!Thing");
-    ///
-    /// let tag = Tag::new("!Thing");
-    /// assert!(tag == "Thing");
-    /// assert!(tag == "!Thing");
-    /// assert!(tag.to_string() == "!Thing");
-    /// ```
-    ///
-    /// Such a tag would serialize to `!Thing` in YAML regardless of whether a
-    /// '!' was included in the call to `Tag::new`.
-    ///
-    /// # Panics
-    ///
-    /// Panics if `string.is_empty()`. There is no syntax in YAML for an empty
-    /// tag.
+    /// Creates a new `Tag`.
     pub fn new(string: impl Into<String>) -> Self {
         let tag: String = string.into();
         assert!(!tag.is_empty(), "empty YAML tag is not allowed");
         Tag { string: tag }
+    }
+}
+
+impl TryFrom<&[u8]> for Tag {
+    type Error = Error;
+
+    fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
+        let tag_str = from_utf8(bytes)
+            .map_err(|_| Error::custom("invalid UTF-8 sequence"))?;
+        Ok(Tag::new(tag_str))
     }
 }
 
@@ -126,7 +96,25 @@ impl Value {
     }
 }
 
-pub(crate) fn nobang(maybe_banged: &str) -> &str {
+/// Returns the portion of a YAML tag after the exclamation mark, if any.
+///
+/// A YAML tag is denoted by a leading exclamation mark (`!`). If the input value is empty, it is considered not to be a tag. If the input value starts with an exclamation mark, it is considered to be a tag but not a bang tag (i.e., `!foo` is a tag, but `!bar` is not). If the input value does not start with an exclamation mark, it is considered not to be a tag.
+///
+/// # Examples
+///
+/// ```
+/// use serde_yml::value::tagged::nobang;
+///
+/// let result = nobang("foo");
+/// assert_eq!("foo", result);
+///
+/// let result = nobang("!bar");
+/// assert_eq!("bar", result);
+///
+/// let result = nobang("");
+/// assert_eq!("", result);
+/// ```
+pub fn nobang(maybe_banged: &str) -> &str {
     match maybe_banged.strip_prefix('!') {
         Some("") | None => maybe_banged,
         Some(unbanged) => unbanged,
@@ -343,109 +331,6 @@ impl<'de> VariantAccess<'de> for Value {
     }
 }
 
-impl<'de> Deserializer<'de> for &'de TaggedValue {
-    type Error = Error;
-
-    fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Error>
-    where
-        V: Visitor<'de>,
-    {
-        visitor.visit_enum(self)
-    }
-
-    fn deserialize_ignored_any<V>(
-        self,
-        visitor: V,
-    ) -> Result<V::Value, Error>
-    where
-        V: Visitor<'de>,
-    {
-        visitor.visit_unit()
-    }
-
-    forward_to_deserialize_any! {
-        bool i8 i16 i32 i64 u8 u16 u32 u64 f32 f64 char str string bytes
-        byte_buf option unit unit_struct newtype_struct seq tuple tuple_struct
-        map struct enum identifier
-    }
-}
-
-impl<'de> EnumAccess<'de> for &'de TaggedValue {
-    type Error = Error;
-    type Variant = &'de Value;
-
-    fn variant_seed<V>(
-        self,
-        seed: V,
-    ) -> Result<(V::Value, Self::Variant), Error>
-    where
-        V: DeserializeSeed<'de>,
-    {
-        let tag = BorrowedStrDeserializer::<Error>::new(nobang(
-            &self.tag.string,
-        ));
-        let value = seed.deserialize(tag)?;
-        Ok((value, &self.value))
-    }
-}
-
-impl<'de> VariantAccess<'de> for &'de Value {
-    type Error = Error;
-
-    fn unit_variant(self) -> Result<(), Error> {
-        Deserialize::deserialize(self)
-    }
-
-    fn newtype_variant_seed<T>(self, seed: T) -> Result<T::Value, Error>
-    where
-        T: DeserializeSeed<'de>,
-    {
-        seed.deserialize(self)
-    }
-
-    fn tuple_variant<V>(
-        self,
-        _len: usize,
-        visitor: V,
-    ) -> Result<V::Value, Error>
-    where
-        V: Visitor<'de>,
-    {
-        if let Value::Sequence(v) = self {
-            Deserializer::deserialize_any(
-                SeqRefDeserializer::new(v),
-                visitor,
-            )
-        } else {
-            Err(Error::invalid_type(
-                self.unexpected(),
-                &"tuple variant",
-            ))
-        }
-    }
-
-    fn struct_variant<V>(
-        self,
-        _fields: &'static [&'static str],
-        visitor: V,
-    ) -> Result<V::Value, Error>
-    where
-        V: Visitor<'de>,
-    {
-        if let Value::Mapping(v) = self {
-            Deserializer::deserialize_any(
-                MapRefDeserializer::new(v),
-                visitor,
-            )
-        } else {
-            Err(Error::invalid_type(
-                self.unexpected(),
-                &"struct variant",
-            ))
-        }
-    }
-}
-
 pub(crate) struct TagStringVisitor;
 
 impl Visitor<'_> for TagStringVisitor {
@@ -490,14 +375,35 @@ impl<'de> DeserializeSeed<'de> for TagStringVisitor {
     }
 }
 
-pub(crate) enum MaybeTag<T> {
+/// A tagged value with an optional tag.
+#[derive(Debug)]
+pub enum MaybeTag<T> {
+    /// The tag.
     Tag(String),
+    /// The value.
     NotTag(T),
 }
 
-pub(crate) fn check_for_tag<T>(value: &T) -> MaybeTag<String>
+/// Returns a `MaybeTag` enum indicating whether the input value is a YAML tag or not.
+///
+/// A YAML tag is denoted by a leading exclamation mark (`!`). If the input value is empty, it is considered not to be a tag. If the input value starts with an exclamation mark, it is considered to be a tag but not a bang tag (i.e., `!foo` is a tag, but `!bar` is not). If the input value does not start with an exclamation mark, it is considered not to be a tag.
+///
+/// # Examples
+///
+/// ```
+/// use serde_yml::value::tagged::check_for_tag;
+/// use serde_yml::value::tagged::MaybeTag;
+///
+/// let result = check_for_tag(&"foo".to_owned());
+/// assert!(
+///     matches!(result, MaybeTag::NotTag(_)),
+///     "Expected MaybeTag::NotTag but got {:?}", result
+/// );
+/// ```
+///
+pub fn check_for_tag<T>(value: &T) -> MaybeTag<String>
 where
-    T: ?Sized + Display,
+    T:?Sized + Display,
 {
     enum CheckForTag {
         Empty,
@@ -506,37 +412,18 @@ where
         NotTag(String),
     }
 
-    impl fmt::Write for CheckForTag {
-        fn write_str(&mut self, s: &str) -> fmt::Result {
-            if s.is_empty() {
-                return Ok(());
+    let check_for_tag = match format!("{}", value).as_str() {
+        "" => CheckForTag::Empty,
+        "!" => CheckForTag::Bang,
+        tag => {
+            if tag.starts_with('!') {
+                CheckForTag::Tag(tag.to_owned())
+            } else {
+                CheckForTag::NotTag(tag.to_owned())
             }
-            match self {
-                CheckForTag::Empty => {
-                    if s == "!" {
-                        *self = CheckForTag::Bang;
-                    } else {
-                        *self = CheckForTag::NotTag(s.to_owned());
-                    }
-                }
-                CheckForTag::Bang => {
-                    *self = CheckForTag::Tag(s.to_owned());
-                }
-                CheckForTag::Tag(string) => {
-                    let mut string = mem::take(string);
-                    string.push_str(s);
-                    *self = CheckForTag::NotTag(string);
-                }
-                CheckForTag::NotTag(string) => {
-                    string.push_str(s);
-                }
-            }
-            Ok(())
         }
-    }
+    };
 
-    let mut check_for_tag = CheckForTag::Empty;
-    fmt::write(&mut check_for_tag, format_args!("{}", value)).unwrap();
     match check_for_tag {
         CheckForTag::Empty => MaybeTag::NotTag(String::new()),
         CheckForTag::Bang => MaybeTag::NotTag("!".to_owned()),

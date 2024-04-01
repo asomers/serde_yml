@@ -73,7 +73,7 @@ fn test_incorrect_nested_type() {
           - !C
             d: fase
     "};
-    let expected = "b\\[0\\].d: invalid type: string \"fase\", expected a boolean at line 3 column 8";
+    let expected = "b.\\[0\\].d: invalid type: string \"fase\", expected a boolean at line 3 column 8";
     test_error::<A>(yaml, expected);
 }
 
