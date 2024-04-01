@@ -4,8 +4,10 @@
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
 use crate::libyaml::cstr;
-use std::fmt::{self, Debug};
-use std::ops::Deref;
+use std::{
+    fmt::{self, Debug},
+    ops::Deref,
+};
 
 #[derive(Ord, PartialOrd, Eq, PartialEq)]
 pub(crate) struct Tag(pub(in crate::libyaml) Box<[u8]>);

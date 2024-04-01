@@ -11,16 +11,20 @@ use crate::libyaml;
 use crate::libyaml::emitter::{
     Emitter, Event, Mapping, Scalar, ScalarStyle, Sequence,
 };
-use crate::modules::error::{self, Error, ErrorImpl};
-use crate::value::tagged::{self, MaybeTag};
-use serde::de::Visitor;
-use serde::ser::{self, Serializer as _};
-use std::fmt::{self, Display};
-use std::io;
-use std::marker::PhantomData;
-use std::mem;
-use std::num;
-use std::str;
+use crate::{
+    modules::error::{self, Error, ErrorImpl},
+    value::tagged::{self, MaybeTag},
+};
+use serde::{
+    de::Visitor,
+    ser::{self, Serializer as _},
+};
+use std::{
+    fmt::{self, Display},
+    io,
+    marker::PhantomData,
+    mem, num, str,
+};
 
 type Result<T, E = Error> = std::result::Result<T, E>;
 

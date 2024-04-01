@@ -3,13 +3,14 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT indicates dual licensing under Apache 2.0 or MIT licenses.
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
-use crate::libyaml;
-use crate::libyaml::util::Owned;
-use std::ffi::c_void;
-use std::io;
-use std::mem::{self, MaybeUninit};
-use std::ptr::{self, addr_of_mut};
-use std::slice;
+use crate::libyaml::{self, util::Owned};
+use std::{
+    ffi::c_void,
+    io,
+    mem::{self, MaybeUninit},
+    ptr::{self, addr_of_mut},
+    slice,
+};
 #[allow(clippy::unsafe_removed_from_name)]
 use unsafe_libyaml as sys;
 

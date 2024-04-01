@@ -3,13 +3,15 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT indicates dual licensing under Apache 2.0 or MIT licenses.
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
-use crate::de::{Event, Progress};
-use crate::libyaml::error::Mark;
-use crate::libyaml::parser::{Event as YamlEvent, Parser};
-use crate::modules::error::{self, Error, ErrorImpl, Result};
-use std::borrow::Cow;
-use std::collections::BTreeMap;
-use std::sync::Arc;
+use crate::{
+    de::{Event, Progress},
+    libyaml::{
+        error::Mark,
+        parser::{Event as YamlEvent, Parser},
+    },
+    modules::error::{self, Error, ErrorImpl, Result},
+};
+use std::{borrow::Cow, collections::BTreeMap, sync::Arc};
 
 pub(crate) struct Loader<'input> {
     parser: Option<Parser<'input>>,

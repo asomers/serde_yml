@@ -28,7 +28,8 @@ use std::{
 /// A representation of YAML's `!Tag` syntax, used for enums.
 #[derive(Clone)]
 pub struct Tag {
-    pub(crate) string: String,
+    /// The string representation of the tag.
+    pub string: String,
 }
 
 /// A `Tag` + `Value` representing a tagged YAML scalar, sequence, or mapping.
@@ -95,7 +96,25 @@ impl Value {
     }
 }
 
-pub(crate) fn nobang(maybe_banged: &str) -> &str {
+/// Returns the portion of a YAML tag after the exclamation mark, if any.
+///
+/// A YAML tag is denoted by a leading exclamation mark (`!`). If the input value is empty, it is considered not to be a tag. If the input value starts with an exclamation mark, it is considered to be a tag but not a bang tag (i.e., `!foo` is a tag, but `!bar` is not). If the input value does not start with an exclamation mark, it is considered not to be a tag.
+///
+/// # Examples
+///
+/// ```
+/// use serde_yml::value::tagged::nobang;
+///
+/// let result = nobang("foo");
+/// assert_eq!("foo", result);
+///
+/// let result = nobang("!bar");
+/// assert_eq!("bar", result);
+///
+/// let result = nobang("");
+/// assert_eq!("", result);
+/// ```
+pub fn nobang(maybe_banged: &str) -> &str {
     match maybe_banged.strip_prefix('!') {
         Some("") | None => maybe_banged,
         Some(unbanged) => unbanged,
