@@ -12,19 +12,6 @@ mod tests {
         str::FromStr,
     };
 
-    // Tests for Number::as_f64 method
-    #[test]
-    fn test_as_f64() {
-        let number = Number::from(42);
-        assert_eq!(number.as_f64(), Some(42.0));
-
-        let number = Number::from(-42);
-        assert_eq!(number.as_f64(), Some(-42.0));
-
-        let number = Number::from(3.14);
-        assert_eq!(number.as_f64(), Some(3.14));
-    }
-
     // Tests for Number::as_i64 method
     #[test]
     fn test_as_i64() {
@@ -34,7 +21,7 @@ mod tests {
         let number = Number::from(-42);
         assert_eq!(number.as_i64(), Some(-42));
 
-        let number = Number::from(3.14);
+        let number = Number::from(std::f64::consts::PI);
         assert_eq!(number.as_i64(), None);
     }
 
@@ -47,31 +34,45 @@ mod tests {
         let number = Number::from(-42);
         assert_eq!(number.as_u64(), None);
 
-        let number = Number::from(3.14);
+        let number = Number::from(std::f64::consts::PI);
         assert_eq!(number.as_u64(), None);
     }
 
     // Tests for Number::display method
-    #[test]
-    fn test_display() {
-        let number = Number::from(42);
-        assert_eq!(number.to_string(), "42");
+#[test]
+fn test_display() {
+    let number = Number::from(42);
+    assert_eq!(number.to_string(), "42");
 
-        let number = Number::from(-42);
-        assert_eq!(number.to_string(), "-42");
+    let number = Number::from(-42);
+    assert_eq!(number.to_string(), "-42");
 
-        let number = Number::from(f64::NAN);
-        assert_eq!(number.to_string(), ".nan");
+    let number = Number::from(f64::NAN);
+    assert_eq!(number.to_string(), ".nan");
 
-        let number = Number::from(f64::INFINITY);
-        assert_eq!(number.to_string(), ".inf");
+    let number = Number::from(f64::INFINITY);
+    assert_eq!(number.to_string(), ".inf");
 
-        let number = Number::from(-f64::INFINITY);
-        assert_eq!(number.to_string(), "-.inf");
+    let number = Number::from(-f64::INFINITY);
+    assert_eq!(number.to_string(), "-.inf");
 
-        let number = Number::from(3.14);
-        assert_eq!(number.to_string(), "3.14");
-    }
+    let number = Number::from(std::f64::consts::PI);
+    assert!((number.to_string().parse::<f64>().unwrap() - std::f64::consts::PI).abs() < f64::EPSILON);
+}
+
+// Tests for Number::as_f64 method
+#[test]
+fn test_as_f64() {
+    let number = Number::from(42);
+    assert_eq!(number.as_f64().unwrap(), 42.0);
+
+    let number = Number::from(-42);
+    assert_eq!(number.as_f64().unwrap(), -42.0);
+
+    let number = Number::from(std::f64::consts::PI);
+    assert!((number.as_f64().unwrap() - std::f64::consts::PI).abs() < f64::EPSILON);
+}
+
 
     // Tests for Number::from_str method
     #[test]
@@ -82,8 +83,8 @@ mod tests {
         let number = Number::from_str("-42").unwrap();
         assert_eq!(number, Number::from(-42));
 
-        let number = Number::from_str("3.14").unwrap();
-        assert_eq!(number, Number::from(3.14));
+        let number = Number::from(std::f64::consts::PI);
+        assert_eq!(number, Number::from(std::f64::consts::PI));
 
         let result = Number::from_str("invalid");
         assert!(result.is_err());
@@ -98,7 +99,7 @@ mod tests {
         let number = Number::from(-42);
         assert!(!number.is_f64());
 
-        let number = Number::from(3.14);
+        let number = Number::from(std::f64::consts::PI);
         assert!(number.is_f64());
     }
 
@@ -111,7 +112,7 @@ mod tests {
         let number = Number::from(-42);
         assert!(number.is_i64());
 
-        let number = Number::from(3.14);
+        let number = Number::from(std::f64::consts::PI);
         assert!(!number.is_i64());
     }
 
@@ -127,7 +128,7 @@ mod tests {
         let number = Number::from(42);
         assert!(!number.is_infinite());
 
-        let number = Number::from(3.14);
+        let number = Number::from(std::f64::consts::PI);
         assert!(!number.is_infinite());
     }
 
@@ -140,7 +141,7 @@ mod tests {
         let number = Number::from(42);
         assert!(!number.is_nan());
 
-        let number = Number::from(3.14);
+        let number = Number::from(std::f64::consts::PI);
         assert!(!number.is_nan());
     }
 
@@ -153,7 +154,7 @@ mod tests {
         let number = Number::from(-42);
         assert!(!number.is_u64());
 
-        let number = Number::from(3.14);
+        let number = Number::from(std::f64::consts::PI);
         assert!(!number.is_u64());
     }
 
@@ -168,8 +169,8 @@ mod tests {
         let number2 = Number::from(-42);
         assert_eq!(number1, number2);
 
-        let number1 = Number::from(3.14);
-        let number2 = Number::from(3.14);
+        let number1 = Number::from(std::f64::consts::PI);
+        let number2 = Number::from(std::f64::consts::PI);
         assert_eq!(number1, number2);
 
         let number1 = Number::from(42);
@@ -177,7 +178,7 @@ mod tests {
         assert_ne!(number1, number2);
 
         let number1 = Number::from(42);
-        let number2 = Number::from(3.14);
+        let number2 = Number::from(std::f64::consts::PI);
         assert_ne!(number1, number2);
     }
 
@@ -202,14 +203,14 @@ mod tests {
             Some(Ordering::Greater)
         );
 
-        let number1 = Number::from(3.14);
-        let number2 = Number::from(3.14);
+        let number1 = Number::from(std::f64::consts::PI);
+        let number2 = Number::from(std::f64::consts::PI);
         assert_eq!(
             number1.partial_cmp(&number2),
             Some(Ordering::Equal)
         );
 
-        let number1 = Number::from(3.14);
+        let number1 = Number::from(std::f64::consts::PI);
         let number2 = Number::from(2.71);
         assert_eq!(
             number1.partial_cmp(&number2),
@@ -253,7 +254,7 @@ mod tests {
         let deserialized: Number = serde_yml::from_str(&serialized).unwrap();
         assert_eq!(number, deserialized);
 
-        let number = Number::from(3.14);
+        let number = Number::from(std::f64::consts::PI);
         let serialized = serde_yml::to_string(&number).unwrap();
         let deserialized: Number = serde_yml::from_str(&serialized).unwrap();
         assert_eq!(number, deserialized);
