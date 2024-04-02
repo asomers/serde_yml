@@ -13,19 +13,32 @@ use crate::{
 };
 use std::{borrow::Cow, collections::BTreeMap, sync::Arc};
 
+/// Represents a YAML loader.
 pub(crate) struct Loader<'input> {
     parser: Option<Parser<'input>>,
     document_count: usize,
 }
 
+/// Represents a YAML document.
 pub(crate) struct Document<'input> {
+    /// The parsed events of the document.
     pub events: Vec<(Event<'input>, Mark)>,
+    /// Any error encountered during parsing.
     pub error: Option<Arc<ErrorImpl>>,
     /// Map from alias id to index in events.
     pub aliases: BTreeMap<usize, usize>,
 }
 
 impl<'input> Loader<'input> {
+    /// Constructs a new `Loader` instance from the given progress.
+    ///
+    /// # Arguments
+    ///
+    /// * `progress` - The progress representing the YAML input.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if there is an issue reading the input.
     pub fn new(progress: Progress<'input>) -> Result<Self> {
         let input = match progress {
             Progress::Str(s) => Cow::Borrowed(s.as_bytes()),
@@ -49,6 +62,11 @@ impl<'input> Loader<'input> {
         })
     }
 
+    /// Advances the loader to the next document and returns it.
+    ///
+    /// # Returns
+    ///
+    /// Returns `Some(Document)` if a document is successfully parsed, or `None` if there are no more documents.
     pub fn next_document(&mut self) -> Option<Document<'input>> {
         let parser = match &mut self.parser {
             Some(parser) => parser,
