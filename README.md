@@ -24,8 +24,6 @@ Serde YML is a Rust library that simplifies YAML serialization and deserializati
 
 <!-- markdownlint-enable MD033 -->
 
-![divider][divider]
-
 ## Overview
 
 `Serde YML` is a robust Rust library that simplifies the serialization and deserialization of Rust data structures to and from YAML format using the widely-used Serde framework. With Serde YML, you can effortlessly convert your Rust types into YAML strings and vice versa, streamlining the process of storing, transmitting, and manipulating structured data.providing style guides for your library.
@@ -69,6 +67,113 @@ fn main() -> Result<(), serde_yml::Error> {
 ```
 
 ## Examples
+
+To get started with Serde YML, you can use the examples provided in the `examples` directory of the project.
+
+Serde YML provides a set of comprehensive examples to demonstrate its usage and capabilities.
+
+To run the examples, clone the repository and run the following command in your
+terminal from the project root directory.
+
+```shell
+cargo run --example example
+```
+
+The command will execute the example code, demonstrating various features and use cases of the Serde YML library. The examples cover various scenarios, including serializing and deserializing structs, enums, optional fields, custom structs, and more.
+
+Here are a few notable examples:
+
+### Serializing and Deserializing Structs
+
+```rust
+use serde::{Serialize, Deserialize};
+use serde_yml;
+
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
+struct Point {
+    x: f64,
+    y: f64,
+}
+
+fn main() -> Result<(), serde_yml::Error> {
+    let point = Point { x: 1.0, y: 2.0 };
+
+    // Serialize to YAML
+    let yaml = serde_yml::to_string(&point)?;
+    assert_eq!(yaml, "x: 1.0\ny: 2.0\n");
+
+    // Deserialize from YAML
+    let deserialized_point: Point = serde_yml::from_str(&yaml)?;
+    assert_eq!(point, deserialized_point);
+
+    Ok(())
+}
+```
+
+### Serializing and Deserializing Enums
+
+```rust
+use serde::{Serialize, Deserialize};
+use serde_yml;
+
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
+enum Shape {
+    Rectangle { width: u32, height: u32 },
+    Circle { radius: f64 },
+    Triangle { base: u32, height: u32 },
+}
+
+fn main() -> Result<(), serde_yml::Error> {
+    let shapes = vec![
+        Shape::Rectangle { width: 10, height: 20 },
+        Shape::Circle { radius: 5.0 },
+        Shape::Triangle { base: 8, height: 12 },
+    ];
+
+    // Serialize to YAML
+    let yaml = serde_yml::to_string(&shapes)?;
+    println!("Serialized YAML:\n{}", yaml);
+
+    // Deserialize from YAML
+    let deserialized_shapes: Vec<Shape> = serde_yml::from_str(&yaml)?;
+    assert_eq!(shapes, deserialized_shapes);
+
+    Ok(())
+}
+```
+
+### Serializing and Deserializing Optional Fields
+
+```rust
+use serde::{Serialize, Deserialize};
+use serde_yml;
+
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
+struct User {
+    name: String,
+    age: Option<u32>,
+    #[serde(default)]
+    is_active: bool,
+}
+
+fn main() -> Result<(), serde_yml::Error> {
+    let user = User {
+        name: "John".to_string(),
+        age: Some(30),
+        is_active: true,
+    };
+
+    // Serialize to YAML
+    let yaml = serde_yml::to_string(&user)?;
+    println!("Serialized YAML:\n{}", yaml);
+
+    // Deserialize from YAML
+    let deserialized_user: User = serde_yml::from_str(&yaml)?;
+    assert_eq!(user, deserialized_user);
+
+    Ok(())
+}
+```
 
 ### Serializing and Deserializing a HashMap
 
