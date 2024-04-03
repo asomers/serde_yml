@@ -53,5 +53,5 @@ pub(crate) fn main() {
     assert!(matches!(*error, ErrorImpl::UnknownAnchor(_)));
 
     // Print a success message and present the error to the user
-    println!("✅ Document loaded with expected error: \n\t{}", error);
+    println!("\n✅ Document loaded with expected error: \n\t{}", error);
 }

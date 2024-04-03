@@ -8,6 +8,9 @@
 /// Contains the example modules for the `loader` module.
 mod loader;
 
+/// Examples for the `with` module.
+mod with;
+
 /// The main function that runs all the example modules.
 ///
 /// This function is responsible for running all the example modules.
@@ -16,4 +19,7 @@ mod loader;
 fn main() {
     // Run the example module `loader`.
     loader::main();
+
+    // Run the example module `with`.
+    with::main();
 }

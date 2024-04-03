@@ -60,7 +60,7 @@ pub(crate) fn main() {
             // Check if there are more documents in the loader.
             if loader.next_document().is_none() {
                 // If no more documents are present, print a success message.
-                println!("All documents loaded successfully");
+                println!("\n✅ All documents loaded successfully");
             } else {
                 // If more documents are present, print an error message.
                 println!("Failed to load all documents");
