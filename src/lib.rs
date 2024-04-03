@@ -213,8 +213,8 @@ pub use crate::mapping::Mapping;
 /// The `de` module contains the library's YAML deserializer.
 pub mod de;
 
-/// The `libyaml` module contains the library's YAML parser and emitter.
-pub mod libyaml;
+/// The `libyml` module contains the library's YAML parser and emitter.
+pub mod libyml;
 
 /// The `loader` module contains the `Loader` type for YAML loading.
 pub mod loader;

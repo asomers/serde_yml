@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT indicates dual licensing under Apache 2.0 or MIT licenses.
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
-use crate::libyaml::{self, util::Owned};
+use crate::libyml::{self, util::Owned};
 use std::{
     ffi::c_void,
     io,
@@ -17,8 +17,8 @@ use unsafe_libyaml as sys;
 /// Errors that can occur during YAML emission.
 #[derive(Debug)]
 pub(crate) enum Error {
-    /// Errors related to libyaml.
-    Libyaml(libyaml::error::Error),
+    /// Errors related to libyml.
+    Libyaml(libyml::error::Error),
     /// I/O errors.
     Io(io::Error),
 }
@@ -104,7 +104,7 @@ impl<'a> Emitter<'a> {
             if sys::yaml_emitter_initialize(emitter).fail {
                 panic!(
                     "malloc error: {}",
-                    libyaml::Error::emit_error(emitter)
+                    libyml::Error::emit_error(emitter)
                 );
             }
             sys::yaml_emitter_set_unicode(emitter, true);
@@ -231,7 +231,7 @@ impl<'a> Emitter<'a> {
             };
             if initialize_status.fail {
                 return Err(Error::Libyaml(
-                    libyaml::Error::emit_error(emitter),
+                    libyml::Error::emit_error(emitter),
                 ));
             }
             if sys::yaml_emitter_emit(emitter, sys_event).fail {
@@ -266,7 +266,7 @@ impl<'a> Emitter<'a> {
             Error::Io(write_error)
         } else {
             Error::Libyaml(unsafe {
-                libyaml::Error::emit_error(&emitter.sys)
+                libyml::Error::emit_error(&emitter.sys)
             })
         }
     }

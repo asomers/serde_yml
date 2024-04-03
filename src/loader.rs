@@ -5,7 +5,7 @@
 
 use crate::{
     de::{Event, Progress},
-    libyaml::{
+    libyml::{
         error::Mark,
         parser::{Event as YamlEvent, Parser},
     },
@@ -17,7 +17,7 @@ use std::{borrow::Cow, collections::BTreeMap, sync::Arc};
 pub struct Loader<'input> {
     /// The YAML parser used to parse the input.
     ///
-    /// The `Parser` type is defined in the `libyaml` module and represents
+    /// The `Parser` type is defined in the `libyml` module and represents
     /// a low-level YAML parser.
     ///
     /// The `'input` lifetime parameter indicates the lifetime of the input data

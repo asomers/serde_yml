@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT indicates dual licensing under Apache 2.0 or MIT licenses.
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
-use crate::libyaml::{
+use crate::libyml::{
     cstr::{self, CStr},
     error::{Error, Mark, Result},
     tag::Tag,
@@ -22,7 +22,7 @@ use unsafe_libyaml as sys;
 /// Represents a YAML parser.
 ///
 /// The `Parser` struct is responsible for parsing YAML input and generating a sequence
-/// of YAML events. It wraps the underlying `libyaml` parser and provides a safe and
+/// of YAML events. It wraps the underlying `libyml` parser and provides a safe and
 /// convenient interface for parsing YAML documents.
 ///
 /// The `'input` lifetime parameter indicates the lifetime of the input data being parsed.
@@ -34,18 +34,18 @@ pub struct Parser<'input> {
     /// `ParserPinned` struct. The `Owned` type is used to provide pinning and
     /// allows the `Parser` to be safely moved around.
     ///
-    /// The `ParserPinned` struct contains the underlying `libyaml` parser state
+    /// The `ParserPinned` struct contains the underlying `libyml` parser state
     /// and the input data being parsed.
     ///
     /// Pinning is used to ensure that the `Parser` remains at a fixed memory
-    /// location, which is required for safe interaction with the `libyaml` library.
+    /// location, which is required for safe interaction with the `libyml` library.
     pin: Owned<ParserPinned<'input>>,
 }
 
 struct ParserPinned<'input> {
-    /// The underlying `yaml_parser_t` struct from the `libyaml` library.
+    /// The underlying `yaml_parser_t` struct from the `libyml` library.
     ///
-    /// This field represents the low-level YAML parser state used by the `libyaml`
+    /// This field represents the low-level YAML parser state used by the `libyml`
     /// library to parse YAML documents.
     sys: sys::yaml_parser_t,
 
@@ -188,7 +188,7 @@ impl<'input> Parser<'input> {
     ///
     /// # Panics
     ///
-    /// This function panics if there is an error initializing the underlying `libyaml` parser.
+    /// This function panics if there is an error initializing the underlying `libyml` parser.
     pub fn new(input: Cow<'input, [u8]>) -> Parser<'input> {
         let owned = Owned::<ParserPinned<'input>>::new_uninit();
         let pin = unsafe {

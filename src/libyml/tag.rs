@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT indicates dual licensing under Apache 2.0 or MIT licenses.
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
-use crate::libyaml::cstr;
+use crate::libyml::cstr;
 use std::{
     fmt::{self, Debug},
     ops::Deref,
@@ -12,7 +12,7 @@ use std::{
 /// Represents a tag in a YAML document.
 /// A tag specifies the data type or semantic meaning of a value.
 #[derive(Ord, PartialOrd, Eq, PartialEq)]
-pub struct Tag(pub(in crate::libyaml) Box<[u8]>);
+pub struct Tag(pub(in crate::libyml) Box<[u8]>);
 
 impl Tag {
     /// The null tag, representing a null value.

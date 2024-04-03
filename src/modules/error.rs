@@ -4,7 +4,7 @@
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
 use crate::{
-    libyaml::{emitter, error as libyaml},
+    libyml::{emitter, error as libyml},
     modules::path::Path,
 };
 use serde::{de, ser};
@@ -27,13 +27,13 @@ pub type Result<T> = result::Result<T, Error>;
 /// The internal representation of an error.
 ///
 /// This enum represents various errors that can occur during YAML serialization or deserialization,
-/// including I/O errors, UTF-8 conversion errors, and errors originating from the `libyaml` library.
+/// including I/O errors, UTF-8 conversion errors, and errors originating from the `libyml` library.
 #[derive(Debug)]
 pub enum ErrorImpl {
     /// A generic error message with an optional position.
     Message(String, Option<Pos>),
-    /// An error originating from the `libyaml` library.
-    Libyaml(libyaml::Error),
+    /// An error originating from the `libyml` library.
+    Libyaml(libyml::Error),
     /// An I/O error.
     Io(io::Error),
     /// An error encountered while converting a byte slice to a string using UTF-8 encoding.
@@ -43,13 +43,13 @@ pub enum ErrorImpl {
     /// An error indicating that more than one YAML document was encountered.
     MoreThanOneDocument,
     /// An error indicating that the recursion limit was exceeded.
-    RecursionLimitExceeded(libyaml::Mark),
+    RecursionLimitExceeded(libyml::Mark),
     /// An error indicating that the repetition limit was exceeded.
     RepetitionLimitExceeded,
     /// An error indicating that byte-based YAML is unsupported.
     BytesUnsupported,
     /// An error indicating that an unknown anchor was encountered.
-    UnknownAnchor(libyaml::Mark),
+    UnknownAnchor(libyml::Mark),
     /// An error indicating that serializing a nested enum is not supported.
     SerializeNestedEnum,
     /// An error indicating that a scalar value was encountered in a merge operation.
@@ -72,7 +72,7 @@ pub enum ErrorImpl {
 #[derive(Debug)]
 pub struct Pos {
     /// The mark representing the position.
-    mark: libyaml::Mark,
+    mark: libyml::Mark,
     /// The path to the position.
     path: String,
 }
@@ -106,10 +106,10 @@ impl Location {
 
     // This function is intended for internal use only to maintain decoupling with the yaml crate.
     #[doc(hidden)]
-    fn from_mark(mark: libyaml::Mark) -> Self {
+    fn from_mark(mark: libyml::Mark) -> Self {
         Location {
             index: mark.index() as usize,
-            // `line` and `column` returned from libyaml are 0-indexed but all error messages add +1 to this value.
+            // `line` and `column` returned from libyml are 0-indexed but all error messages add +1 to this value.
             line: mark.line() as usize + 1,
             column: mark.column() as usize + 1,
         }
@@ -146,7 +146,7 @@ pub fn shared(shared: Arc<ErrorImpl>) -> Error {
 }
 
 /// Fixes the mark and path in an error.
-pub fn fix_mark(mut error: Error, mark: libyaml::Mark, path: Path<'_>) -> Error {
+pub fn fix_mark(mut error: Error, mark: libyml::Mark, path: Path<'_>) -> Error {
     if let ErrorImpl::Message(_, none @ None) = error.0.as_mut() {
         *none = Some(Pos {
             mark,
@@ -156,8 +156,8 @@ pub fn fix_mark(mut error: Error, mark: libyaml::Mark, path: Path<'_>) -> Error 
     error
 }
 
-impl From<libyaml::Error> for Error {
-    fn from(err: libyaml::Error) -> Self {
+impl From<libyml::Error> for Error {
+    fn from(err: libyml::Error) -> Self {
         Error(Box::new(ErrorImpl::Libyaml(err)))
     }
 }
@@ -217,7 +217,7 @@ impl ErrorImpl {
         }
     }
 
-    fn mark(&self) -> Option<libyaml::Mark> {
+    fn mark(&self) -> Option<libyml::Mark> {
         match self {
             ErrorImpl::Message(_, Some(Pos { mark, path: _ }))
             | ErrorImpl::RecursionLimitExceeded(mark)

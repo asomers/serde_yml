@@ -4,7 +4,7 @@
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
 use crate::{
-    libyaml::{
+    libyml::{
         error::Mark,
         parser::{MappingStart, Scalar, ScalarStyle, SequenceStart},
         tag::Tag,
@@ -1501,8 +1501,8 @@ fn invalid_type(event: &Event, exp: &dyn Expected) -> Error {
     }
 }
 
-fn parse_tag(libyaml_tag: &Option<Tag>) -> Option<&str> {
-    let mut bytes: &[u8] = libyaml_tag.as_ref()?;
+fn parse_tag(libyml_tag: &Option<Tag>) -> Option<&str> {
+    let mut bytes: &[u8] = libyml_tag.as_ref()?;
     if let (b'!', rest) = bytes.split_first()? {
         if !rest.is_empty() {
             bytes = rest;

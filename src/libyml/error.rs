@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT indicates dual licensing under Apache 2.0 or MIT licenses.
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
-use crate::libyaml::cstr::CStr;
+use crate::libyml::cstr::CStr;
 use std::{
     fmt::{self, Debug, Display},
     mem::MaybeUninit,
@@ -59,7 +59,7 @@ impl Error {
             kind: unsafe { (*parser).error },
             problem: match NonNull::new(unsafe { (*parser).problem as *mut _ }) {
                 Some(problem) => CStr::from_ptr(problem),
-                None => CStr::from_bytes_with_nul(b"libyaml parser failed but there is no error\0"),
+                None => CStr::from_bytes_with_nul(b"libyml parser failed but there is no error\0"),
             },
             problem_offset: unsafe { (*parser).problem_offset },
             problem_mark: Mark {
@@ -87,7 +87,7 @@ impl Error {
             kind: unsafe { (*emitter).error },
             problem: match NonNull::new(unsafe { (*emitter).problem as *mut _ }) {
                 Some(problem) => CStr::from_ptr(problem),
-                None => CStr::from_bytes_with_nul(b"libyaml emitter failed but there is no error\0"),
+                None => CStr::from_bytes_with_nul(b"libyml emitter failed but there is no error\0"),
             },
             problem_offset: 0,
             problem_mark: Mark {
