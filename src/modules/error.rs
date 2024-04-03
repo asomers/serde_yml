@@ -15,59 +15,6 @@ use std::{
     sync::Arc,
 };
 
-/// An error that occurred during YAML serialization or deserialization.
-///
-/// This struct wraps an internal error representation, `ErrorImpl`, and provides methods for
-/// accessing the error's location and a shared reference to the internal error.
-pub struct Error(Box<ErrorImpl>);
-
-/// Alias for a `Result` with the error type `serde_yml::Error`.
-pub type Result<T> = result::Result<T, Error>;
-
-/// The internal representation of an error.
-///
-/// This enum represents various errors that can occur during YAML serialization or deserialization,
-/// including I/O errors, UTF-8 conversion errors, and errors originating from the `libyml` library.
-#[derive(Debug)]
-pub enum ErrorImpl {
-    /// A generic error message with an optional position.
-    Message(String, Option<Pos>),
-    /// An error originating from the `libyml` library.
-    Libyaml(libyml::Error),
-    /// An I/O error.
-    Io(io::Error),
-    /// An error encountered while converting a byte slice to a string using UTF-8 encoding.
-    FromUtf8(string::FromUtf8Error),
-    /// An error indicating that the end of the YAML stream was reached unexpectedly.
-    EndOfStream,
-    /// An error indicating that more than one YAML document was encountered.
-    MoreThanOneDocument,
-    /// An error indicating that the recursion limit was exceeded.
-    RecursionLimitExceeded(libyml::Mark),
-    /// An error indicating that the repetition limit was exceeded.
-    RepetitionLimitExceeded,
-    /// An error indicating that byte-based YAML is unsupported.
-    BytesUnsupported,
-    /// An error indicating that an unknown anchor was encountered.
-    UnknownAnchor(libyml::Mark),
-    /// An error indicating that serializing a nested enum is not supported.
-    SerializeNestedEnum,
-    /// An error indicating that a scalar value was encountered in a merge operation.
-    ScalarInMerge,
-    /// An error indicating that a tagged value was encountered in a merge operation.
-    TaggedInMerge,
-    /// An error indicating that a scalar value was encountered in a merge element.
-    ScalarInMergeElement,
-    /// An error indicating that a sequence was encountered in a merge element.
-    SequenceInMergeElement,
-    /// An error indicating that an empty tag was encountered.
-    EmptyTag,
-    /// An error indicating that parsing a number failed.
-    FailedToParseNumber,
-    /// A shared error implementation.
-    Shared(Arc<ErrorImpl>),
-}
-
 /// Represents a position in the YAML input.
 #[derive(Debug)]
 pub struct Pos {
@@ -116,7 +63,94 @@ impl Location {
     }
 }
 
+/// An error that occurred during YAML serialization or deserialization.
+///
+/// This struct wraps an internal error representation, `ErrorImpl`, and provides methods for
+/// accessing the error's location and a shared reference to the internal error.
+pub struct Error(Box<ErrorImpl>);
+
+/// Alias for a `Result` with the error type `serde_yml::Error`.
+pub type Result<T> = result::Result<T, Error>;
+
+/// The internal representation of an error.
+///
+/// This enum represents various errors that can occur during YAML serialization or deserialization,
+/// including I/O errors, UTF-8 conversion errors, and errors originating from the `libyml` library.
+#[derive(Debug)]
+pub enum ErrorImpl {
+    /// A generic error message with an optional position.
+    Message(String, Option<Pos>),
+    /// An error originating from the `libyml` library.
+    Libyaml(libyml::Error),
+    /// An I/O error.
+    IoError(io::Error),
+    /// An error encountered while converting a byte slice to a string using UTF-8 encoding.
+    FromUtf8(string::FromUtf8Error),
+    /// An error indicating that the end of the YAML stream was reached unexpectedly.
+    EndOfStream,
+    /// An error indicating that more than one YAML document was encountered.
+    MoreThanOneDocument,
+    /// An error indicating that the recursion limit was exceeded.
+    RecursionLimitExceeded(libyml::Mark),
+    /// An error indicating that the repetition limit was exceeded.
+    RepetitionLimitExceeded,
+    /// An error indicating that byte-based YAML is unsupported.
+    BytesUnsupported,
+    /// An error indicating that an unknown anchor was encountered.
+    UnknownAnchor(libyml::Mark),
+    /// An error indicating that serializing a nested enum is not supported.
+    SerializeNestedEnum,
+    /// An error indicating that a scalar value was encountered in a merge operation.
+    ScalarInMerge,
+    /// An error indicating that a tagged value was encountered in a merge operation.
+    TaggedInMerge,
+    /// An error indicating that a scalar value was encountered in a merge element.
+    ScalarInMergeElement,
+    /// An error indicating that a sequence was encountered in a merge element.
+    SequenceInMergeElement,
+    /// An error indicating that an empty tag was encountered.
+    EmptyTag,
+    /// An error indicating that parsing a number failed.
+    FailedToParseNumber,
+    /// A shared error implementation.
+    Shared(Arc<ErrorImpl>),
+}
+
+impl fmt::Display for ErrorImpl {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ErrorImpl::Message(msg, _) => write!(f, "Error: {}", msg),
+            ErrorImpl::Libyaml(_) => write!(f, "Error: An error occurred in the Libyaml library"),
+            ErrorImpl::IoError(err) => write!(f, "I/O Error: {}", err),
+            ErrorImpl::FromUtf8(err) => write!(f, "UTF-8 Conversion Error: {}", err),
+            ErrorImpl::EndOfStream => write!(f, "Unexpected End of YAML Stream: The YAML stream ended unexpectedly while parsing a value"),
+            ErrorImpl::MoreThanOneDocument => write!(f, "Multiple YAML Documents Error: Deserializing from YAML containing more than one document is not supported"),
+            ErrorImpl::RecursionLimitExceeded(_) => write!(f, "Recursion Limit Exceeded: The recursive depth limit was exceeded while parsing the YAML"),
+            ErrorImpl::RepetitionLimitExceeded => write!(f, "Repetition Limit Exceeded: The repetition limit was exceeded while parsing the YAML"),
+            ErrorImpl::BytesUnsupported => write!(f, "Unsupported Bytes Error: Serialization and deserialization of bytes in YAML is not implemented"),
+            ErrorImpl::UnknownAnchor(_) => write!(f, "Unknown Anchor Error: An unknown anchor was encountered in the YAML"),
+            ErrorImpl::SerializeNestedEnum => write!(f, "Nested Enum Serialization Error: Serializing nested enums in YAML is not supported"),
+            ErrorImpl::ScalarInMerge => write!(f, "Invalid Merge Error: Expected a mapping or list of mappings for merging, but found a scalar value"),
+            ErrorImpl::TaggedInMerge => write!(f, "Invalid Merge Error: Unexpected tagged value encountered in a merge operation"),
+            ErrorImpl::ScalarInMergeElement => write!(f, "Invalid Merge Element Error: Expected a mapping for merging, but found a scalar value"),
+            ErrorImpl::SequenceInMergeElement => write!(f, "Invalid Merge Element Error: Expected a mapping for merging, but found a sequence"),
+            ErrorImpl::EmptyTag => write!(f, "Empty Tag Error: Empty YAML tags are not allowed"),
+            ErrorImpl::FailedToParseNumber => write!(f, "Number Parsing Error: Failed to parse the YAML number"),
+            ErrorImpl::Shared(_) => write!(f, "Shared Error: An error occurred in the shared error implementation"),
+        }
+    }
+}
+
 impl Error {
+    /// Returns the I/O error that caused this error, if available.
+    pub fn io_error(&self) -> Option<&io::Error> {
+        if let ErrorImpl::IoError(err) = &*self.0 {
+            Some(err)
+        } else {
+            None
+        }
+    }
+
     /// Returns the location where the error occurred, if available.
     pub fn location(&self) -> Option<Location> {
         self.0.location()
@@ -166,7 +200,7 @@ impl From<emitter::Error> for Error {
     fn from(err: emitter::Error) -> Self {
         match err {
             emitter::Error::Libyaml(err) => Self::from(err),
-            emitter::Error::Io(err) => new(ErrorImpl::Io(err)),
+            emitter::Error::Io(err) => new(ErrorImpl::IoError(err)),
         }
     }
 }
@@ -210,7 +244,7 @@ impl ErrorImpl {
 
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         match self {
-            ErrorImpl::Io(err) => err.source(),
+            ErrorImpl::IoError(err) => err.source(),
             ErrorImpl::FromUtf8(err) => err.source(),
             ErrorImpl::Shared(err) => err.source(),
             _ => None,
@@ -238,7 +272,7 @@ impl ErrorImpl {
                 f.write_str(description)
             }
             ErrorImpl::Libyaml(_) => unreachable!(),
-            ErrorImpl::Io(err) => Display::fmt(err, f),
+            ErrorImpl::IoError(err) => Display::fmt(err, f),
             ErrorImpl::FromUtf8(err) => Display::fmt(err, f),
             ErrorImpl::EndOfStream => f.write_str("EOF while parsing a value"),
             ErrorImpl::MoreThanOneDocument => f.write_str(

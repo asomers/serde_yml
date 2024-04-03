@@ -31,6 +31,7 @@ pub struct Loader<'input> {
 }
 
 /// Represents a YAML document.
+#[derive(Debug)]
 pub struct Document<'input> {
     /// The parsed events of the document.
     ///
@@ -79,7 +80,7 @@ impl<'input> Loader<'input> {
             Progress::Read(mut rdr) => {
                 let mut buffer = Vec::new();
                 if let Err(io_error) = rdr.read_to_end(&mut buffer) {
-                    return Err(error::new(ErrorImpl::Io(io_error)));
+                    return Err(error::new(ErrorImpl::IoError(io_error)));
                 }
                 Cow::Owned(buffer)
             }
