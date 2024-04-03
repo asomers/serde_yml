@@ -15,13 +15,19 @@ use std::{
     sync::Arc,
 };
 
-/// An error that happened serializing or deserializing YAML data.
+/// An error that occurred during YAML serialization or deserialization.
+///
+/// This struct wraps an internal error representation, `ErrorImpl`, and provides methods for
+/// accessing the error's location and a shared reference to the internal error.
 pub struct Error(Box<ErrorImpl>);
 
 /// Alias for a `Result` with the error type `serde_yml::Error`.
 pub type Result<T> = result::Result<T, Error>;
 
 /// The internal representation of an error.
+///
+/// This enum represents various errors that can occur during YAML serialization or deserialization,
+/// including I/O errors, UTF-8 conversion errors, and errors originating from the `libyaml` library.
 #[derive(Debug)]
 pub enum ErrorImpl {
     /// A generic error message with an optional position.
@@ -71,7 +77,7 @@ pub struct Pos {
     path: String,
 }
 
-/// The input location that an error occurred.
+/// The input location where an error occurred.
 #[derive(Debug)]
 pub struct Location {
     /// The byte index of the error.
@@ -83,22 +89,22 @@ pub struct Location {
 }
 
 impl Location {
-    /// The byte index of the error.
+    /// Returns the byte index where the error occurred.
     pub fn index(&self) -> usize {
         self.index
     }
 
-    /// The line of the error.
+    /// Returns the line number where the error occurred.
     pub fn line(&self) -> usize {
         self.line
     }
 
-    /// The column of the error.
+    /// Returns the column number where the error occurred.
     pub fn column(&self) -> usize {
         self.column
     }
 
-    // This is to keep decoupled with the yaml crate.
+    // This function is intended for internal use only to maintain decoupling with the yaml crate.
     #[doc(hidden)]
     fn from_mark(mark: libyaml::Mark) -> Self {
         Location {
@@ -111,14 +117,15 @@ impl Location {
 }
 
 impl Error {
-    /// Returns the Location from the error if one exists.
-    ///
-    /// Not all types of errors have a location so this can return `None`.
+    /// Returns the location where the error occurred, if available.
     pub fn location(&self) -> Option<Location> {
         self.0.location()
     }
 
-    /// Creates a new `Error` from an `ErrorImpl`.
+    /// Returns a shared reference to the internal error representation.
+    ///
+    /// This method is useful when you need to share an error between multiple threads or for
+    /// other use cases where a shared reference is required.
     pub fn shared(self) -> Arc<ErrorImpl> {
         if let ErrorImpl::Shared(err) = *self.0 {
             err
@@ -128,7 +135,7 @@ impl Error {
     }
 }
 
-/// Creates a new `Error` from an `ErrorImpl`.
+/// Creates a new `Error` from the given `ErrorImpl`.
 pub fn new(inner: ErrorImpl) -> Error {
     Error(Box::new(inner))
 }
@@ -139,11 +146,7 @@ pub fn shared(shared: Arc<ErrorImpl>) -> Error {
 }
 
 /// Fixes the mark and path in an error.
-pub fn fix_mark(
-    mut error: Error,
-    mark: libyaml::Mark,
-    path: Path<'_>,
-) -> Error {
+pub fn fix_mark(mut error: Error, mark: libyaml::Mark, path: Path<'_>) -> Error {
     if let ErrorImpl::Message(_, none @ None) = error.0.as_mut() {
         *none = Some(Pos {
             mark,
@@ -225,17 +228,14 @@ impl ErrorImpl {
         }
     }
 
-    fn message_no_mark(
-        &self,
-        f: &mut fmt::Formatter<'_>,
-    ) -> fmt::Result {
+    fn message(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ErrorImpl::Message(msg, None) => f.write_str(msg),
-            ErrorImpl::Message(msg, Some(Pos { mark: _, path })) => {
+            ErrorImpl::Message(description, None) => f.write_str(description),
+            ErrorImpl::Message(description, Some(Pos { mark: _, path })) => {
                 if path != "." {
                     write!(f, "{}: ", path)?;
                 }
-                f.write_str(msg)
+                f.write_str(description)
             }
             ErrorImpl::Libyaml(_) => unreachable!(),
             ErrorImpl::Io(err) => Display::fmt(err, f),
@@ -244,8 +244,12 @@ impl ErrorImpl {
             ErrorImpl::MoreThanOneDocument => f.write_str(
                 "deserializing from YAML containing more than one document is not supported",
             ),
-            ErrorImpl::RecursionLimitExceeded(_mark) => f.write_str("recursion limit exceeded"),
-            ErrorImpl::RepetitionLimitExceeded => f.write_str("repetition limit exceeded"),
+            ErrorImpl::RecursionLimitExceeded(_mark) => {
+                f.write_str("recursion limit exceeded")
+            }
+            ErrorImpl::RepetitionLimitExceeded => {
+                f.write_str("repetition limit exceeded")
+            }
             ErrorImpl::BytesUnsupported => {
                 f.write_str("serialization and deserialization of bytes in YAML is not implemented")
             }
@@ -256,7 +260,9 @@ impl ErrorImpl {
             ErrorImpl::ScalarInMerge => {
                 f.write_str("expected a mapping or list of mappings for merging, but found scalar")
             }
-            ErrorImpl::TaggedInMerge => f.write_str("unexpected tagged value in merge"),
+            ErrorImpl::TaggedInMerge => {
+                f.write_str("unexpected tagged value in merge")
+            }
             ErrorImpl::ScalarInMergeElement => {
                 f.write_str("expected a mapping for merging, but found scalar")
             }
@@ -264,7 +270,9 @@ impl ErrorImpl {
                 f.write_str("expected a mapping for merging, but found sequence")
             }
             ErrorImpl::EmptyTag => f.write_str("empty YAML tag is not allowed"),
-            ErrorImpl::FailedToParseNumber => f.write_str("failed to parse YAML number"),
+            ErrorImpl::FailedToParseNumber => {
+                f.write_str("failed to parse YAML number")
+            }
             ErrorImpl::Shared(_) => unreachable!(),
         }
     }
@@ -274,10 +282,10 @@ impl ErrorImpl {
             ErrorImpl::Libyaml(err) => Display::fmt(err, f),
             ErrorImpl::Shared(err) => err.display(f),
             _ => {
-                self.message_no_mark(f)?;
-                if let Some(mark) = self.mark() {
-                    if mark.line() != 0 || mark.column() != 0 {
-                        write!(f, " at {}", mark)?;
+                self.message(f)?;
+                if let Some(location) = self.mark() {
+                    if location.line() != 0 || location.column() != 0 {
+                        write!(f, " at {}", location)?;
                     }
                 }
                 Ok(())
@@ -297,7 +305,7 @@ impl ErrorImpl {
                         &self,
                         f: &mut fmt::Formatter<'_>,
                     ) -> fmt::Result {
-                        self.0.message_no_mark(f)
+                        self.0.message(f)
                     }
                 }
                 let msg = MessageNoMark(self).to_string();
