@@ -368,7 +368,7 @@ and support. A special thank you goes to [David Tolnay][16] and his work on
 [14]: https://codecov.io/gh/sebastienrousseau/serde_yml "Codecov"
 [15]: https://www.reddit.com/r/rust/ "Rust Reddit"
 [16]: https://github.com/dtolnay "David Tolnay"
-[17]: https://github.com/dtolnay/serde_yml "Serde YAML"
+[17]: https://github.com/dtolnay/serde-yaml "Serde YAML"
 
 
 [banner]: https://kura.pro/serde_yml/images/titles/title-serde_yml.svg "Serde YML Banner"
