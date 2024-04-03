@@ -5,7 +5,7 @@
 
 use crate::{
     de::{Event, Progress},
-    libyaml::{
+    libyml::{
         error::Mark,
         parser::{Event as YamlEvent, Parser},
     },
@@ -13,19 +13,66 @@ use crate::{
 };
 use std::{borrow::Cow, collections::BTreeMap, sync::Arc};
 
-pub(crate) struct Loader<'input> {
-    parser: Option<Parser<'input>>,
-    document_count: usize,
+/// Represents a YAML loader.
+pub struct Loader<'input> {
+    /// The YAML parser used to parse the input.
+    ///
+    /// The `Parser` type is defined in the `libyml` module and represents
+    /// a low-level YAML parser.
+    ///
+    /// The `'input` lifetime parameter indicates the lifetime of the input data
+    /// being parsed. It ensures that the `Loader` does not outlive the input data.
+    pub parser: Option<Parser<'input>>,
+
+    /// The count of documents parsed by the loader.
+    ///
+    /// This field keeps track of the number of YAML documents encountered during parsing.
+    pub document_count: usize,
 }
 
-pub(crate) struct Document<'input> {
+/// Represents a YAML document.
+#[derive(Debug)]
+pub struct Document<'input> {
+    /// The parsed events of the document.
+    ///
+    /// This field contains a vector of `(Event<'input>, Mark)` tuples, where:
+    /// - `Event<'input>` represents a parsed YAML event, such as a scalar, sequence, or mapping.
+    ///   The `'input` lifetime parameter indicates the lifetime of the input data associated
+    ///   with the event.
+    /// - `Mark` represents the position in the input where the event was encountered.
     pub events: Vec<(Event<'input>, Mark)>,
+
+    /// Any error encountered during parsing.
+    ///
+    /// This field is an optional `Arc<ErrorImpl>`, where:
+    /// - `Arc` is a reference-counted smart pointer that allows multiple ownership of the error.
+    /// - `ErrorImpl` is the underlying error type that holds the details of the parsing error.
+    ///
+    /// If an error occurs during parsing, this field will contain `Some(error)`. Otherwise, it
+    /// will be `None`.
     pub error: Option<Arc<ErrorImpl>>,
+
     /// Map from alias id to index in events.
+    ///
+    /// This field is a `BTreeMap` that maps alias ids to their corresponding index in the
+    /// `events` vector.
+    ///
+    /// In YAML, an alias is a reference to a previously defined anchor. When an alias is
+    /// encountered during parsing, its id is used to look up the index of the corresponding
+    /// event in the `events` vector.
     pub aliases: BTreeMap<usize, usize>,
 }
 
 impl<'input> Loader<'input> {
+    /// Constructs a new `Loader` instance from the given progress.
+    ///
+    /// # Arguments
+    ///
+    /// * `progress` - The progress representing the YAML input.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if there is an issue reading the input.
     pub fn new(progress: Progress<'input>) -> Result<Self> {
         let input = match progress {
             Progress::Str(s) => Cow::Borrowed(s.as_bytes()),
@@ -33,7 +80,7 @@ impl<'input> Loader<'input> {
             Progress::Read(mut rdr) => {
                 let mut buffer = Vec::new();
                 if let Err(io_error) = rdr.read_to_end(&mut buffer) {
-                    return Err(error::new(ErrorImpl::Io(io_error)));
+                    return Err(error::new(ErrorImpl::IoError(io_error)));
                 }
                 Cow::Owned(buffer)
             }
@@ -49,6 +96,11 @@ impl<'input> Loader<'input> {
         })
     }
 
+    /// Advances the loader to the next document and returns it.
+    ///
+    /// # Returns
+    ///
+    /// Returns `Some(Document)` if a document is successfully parsed, or `None` if there are no more documents.
     pub fn next_document(&mut self) -> Option<Document<'input>> {
         let parser = match &mut self.parser {
             Some(parser) => parser,
@@ -66,7 +118,7 @@ impl<'input> Loader<'input> {
         };
 
         loop {
-            let (event, mark) = match parser.next() {
+            let (event, mark) = match parser.parse_next_event() {
                 Ok((event, mark)) => (event, mark),
                 Err(err) => {
                     document.error = Some(Error::from(err).shared());

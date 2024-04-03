@@ -10,7 +10,7 @@
 //! ## Seamless YAML Serialization for [Rust][03].
 //!
 //! [![Crates.io](https://img.shields.io/crates/v/serde_yml.svg?style=for-the-badge&color=success&labelColor=27A006)](https://crates.io/crates/serde_yml "Crates.io")
-//! [![Lib.rs](https://img.shields.io/badge/lib.rs-v0.0.3-success.svg?style=for-the-badge&color=8A48FF&labelColor=6F36E4)](https://lib.rs/crates/serde_yml "Lib.rs")
+//! [![Lib.rs](https://img.shields.io/badge/lib.rs-v0.0.4-success.svg?style=for-the-badge&color=8A48FF&labelColor=6F36E4)](https://lib.rs/crates/serde_yml "Lib.rs")
 //! [![License](https://img.shields.io/crates/l/serde_yml.svg?style=for-the-badge&color=007EC6&labelColor=03589B)](https://opensource.org/license/apache-2-0/ "MIT or Apache License, Version 2.0")
 //! [![Rust](https://img.shields.io/badge/rust-f04041?style=for-the-badge&labelColor=c0282d&logo=rust)](https://www.rust-lang.org "Rust")
 //!
@@ -210,16 +210,26 @@ pub mod utilities;
 #[doc(inline)]
 pub use crate::mapping::Mapping;
 
-mod de;
-mod libyaml;
-mod loader;
+/// The `de` module contains the library's YAML deserializer.
+pub mod de;
+
+/// The `libyml` module contains the library's YAML parser and emitter.
+pub mod libyml;
+
+/// The `loader` module contains the `Loader` type for YAML loading.
+pub mod loader;
+
+/// The `mapping` module contains the `Mapping` type for YAML mappings.
 pub mod mapping;
+
 /// The `modules` module contains the library's modules.
 pub mod modules;
 
 mod number;
 mod ser;
+/// The `value` module contains the `Value` type for YAML values.
 pub mod value;
+/// The `with` module contains the `With` type for YAML values.
 pub mod with;
 
 // Prevent downstream code from implementing the Index trait.

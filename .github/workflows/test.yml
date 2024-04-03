@@ -67,3 +67,14 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           files: coverage/*.lcov
+
+      # Upload the coverage report to codecov
+      - name: Upload coverage reports to Codecov
+        # Only run this job on the main branch when a commit is pushed.
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        id: upload-report-codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: sebastienrousseau/serde_yml
+          files: coverage/*.lcov

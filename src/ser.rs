@@ -7,8 +7,8 @@
 //!
 //! This module provides YAML serialization with the type `Serializer`.
 
-use crate::libyaml;
-use crate::libyaml::emitter::{
+use crate::libyml;
+use crate::libyml::emitter::{
     Emitter, Event, Mapping, Scalar, ScalarStyle, Sequence,
 };
 use crate::{
@@ -382,7 +382,7 @@ where
                 InferScalarStyle,
                 value,
                 None,
-                libyaml::parser::ScalarStyle::Plain,
+                libyml::parser::ScalarStyle::Plain,
             );
             result.unwrap_or(ScalarStyle::Any)
         };

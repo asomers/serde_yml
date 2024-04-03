@@ -4,7 +4,7 @@
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
 use crate::{
-    libyaml::{
+    libyml::{
         error::Mark,
         parser::{MappingStart, Scalar, ScalarStyle, SequenceStart},
         tag::Tag,
@@ -63,12 +63,41 @@ pub struct Deserializer<'de> {
     progress: Progress<'de>,
 }
 
-pub(crate) enum Progress<'de> {
+/// Represents the progress of parsing a YAML document.
+pub enum Progress<'de> {
+    /// Indicates that the YAML input is a string slice.
+    ///
+    /// The `&'de str` represents a borrowed string slice with a lifetime `'de`.
     Str(&'de str),
+
+    /// Indicates that the YAML input is a byte slice.
+    ///
+    /// The `&'de [u8]` represents a borrowed byte slice with a lifetime `'de`.
     Slice(&'de [u8]),
+
+    /// Indicates that the YAML input is provided through a `Read` trait object.
+    ///
+    /// The `Box<dyn io::Read + 'de>` represents a boxed trait object that implements the `Read` trait
+    /// and has a lifetime `'de`. This allows for reading the YAML input from various sources,
+    /// such as files, network streams, or any other type that implements `Read`.
     Read(Box<dyn io::Read + 'de>),
+
+    /// Indicates that the YAML input is provided through an iterator of `Loader` instances.
+    ///
+    /// The `Loader<'de>` represents a YAML loader that iterates over the YAML documents.
+    /// The `'de` lifetime indicates the lifetime of the borrowed data within the loader.
     Iterable(Loader<'de>),
+
+    /// Indicates that the YAML input is a single `Document` instance.
+    ///
+    /// The `Document<'de>` represents a parsed YAML document.
+    /// The `'de` lifetime indicates the lifetime of the borrowed data within the document.
     Document(Document<'de>),
+
+    /// Indicates that an error occurred during parsing.
+    ///
+    /// The `Arc<ErrorImpl>` represents a reference-counted pointer to the error implementation.
+    /// It allows for sharing the error across multiple owners without duplication.
     Fail(Arc<ErrorImpl>),
 }
 
@@ -525,14 +554,33 @@ impl<'de> de::Deserializer<'de> for Deserializer<'de> {
     }
 }
 
+/// Represents the different events that can occur during YAML parsing.
 #[derive(Debug)]
-pub(crate) enum Event<'de> {
+pub enum Event<'de> {
+    /// Represents an alias event, which refers to a previously defined anchor.
+    /// The `usize` value represents the index of the aliased event.
     Alias(usize),
+
+    /// Represents a scalar event, which contains a scalar value.
+    /// The `Scalar` type holds the scalar value and its associated properties.
     Scalar(Scalar<'de>),
+
+    /// Represents the start of a sequence event.
+    /// The `SequenceStart` type holds the properties of the sequence, such as its anchor and tag.
     SequenceStart(SequenceStart),
+
+    /// Represents the end of a sequence event.
     SequenceEnd,
+
+    /// Represents the start of a mapping event.
+    /// The `MappingStart` type holds the properties of the mapping, such as its anchor and tag.
     MappingStart(MappingStart),
+
+    /// Represents the end of a mapping event.
     MappingEnd,
+
+    /// Represents a void event, which is an empty event.
+    /// This event is used when there are no other events to be parsed.
     Void,
 }
 
@@ -1453,8 +1501,8 @@ fn invalid_type(event: &Event, exp: &dyn Expected) -> Error {
     }
 }
 
-fn parse_tag(libyaml_tag: &Option<Tag>) -> Option<&str> {
-    let mut bytes: &[u8] = libyaml_tag.as_ref()?;
+fn parse_tag(libyml_tag: &Option<Tag>) -> Option<&str> {
+    let mut bytes: &[u8] = libyml_tag.as_ref()?;
     if let (b'!', rest) = bytes.split_first()? {
         if !rest.is_empty() {
             bytes = rest;

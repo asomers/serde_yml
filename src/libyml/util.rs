@@ -10,6 +10,7 @@ use std::{
     ptr::{addr_of, NonNull},
 };
 
+#[derive(Debug)]
 pub(crate) struct Owned<T, Init = T> {
     ptr: NonNull<T>,
     marker: PhantomData<NonNull<Init>>,
