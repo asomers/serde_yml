@@ -19,62 +19,176 @@ use std::{
 #[allow(clippy::unsafe_removed_from_name)]
 use unsafe_libyaml as sys;
 
-pub(crate) struct Parser<'input> {
+/// Represents a YAML parser.
+///
+/// The `Parser` struct is responsible for parsing YAML input and generating a sequence
+/// of YAML events. It wraps the underlying `libyaml` parser and provides a safe and
+/// convenient interface for parsing YAML documents.
+///
+/// The `'input` lifetime parameter indicates the lifetime of the input data being parsed.
+/// It ensures that the `Parser` does not outlive the input data.
+pub struct Parser<'input> {
+    /// The pinned parser state.
+    ///
+    /// The `Owned<ParserPinned<'input>>` type represents an owned instance of the
+    /// `ParserPinned` struct. The `Owned` type is used to provide pinning and
+    /// allows the `Parser` to be safely moved around.
+    ///
+    /// The `ParserPinned` struct contains the underlying `libyaml` parser state
+    /// and the input data being parsed.
+    ///
+    /// Pinning is used to ensure that the `Parser` remains at a fixed memory
+    /// location, which is required for safe interaction with the `libyaml` library.
     pin: Owned<ParserPinned<'input>>,
 }
 
 struct ParserPinned<'input> {
+    /// The underlying `yaml_parser_t` struct from the `libyaml` library.
+    ///
+    /// This field represents the low-level YAML parser state used by the `libyaml`
+    /// library to parse YAML documents.
     sys: sys::yaml_parser_t,
+
+    /// The input data being parsed.
+    ///
+    /// The `Cow<'input, [u8]>` type represents borrowed or owned input data.
+    /// It allows the `Parser` to efficiently handle both borrowed slices and
+    /// owned vectors of bytes.
+    ///
+    /// The `'input` lifetime parameter indicates the lifetime of the borrowed
+    /// input data, if any.
     input: Cow<'input, [u8]>,
 }
 
+/// Represents a YAML event encountered during parsing.
 #[derive(Debug)]
-pub(crate) enum Event<'input> {
+pub enum Event<'input> {
+    /// Indicates the start of a YAML stream.
     StreamStart,
+
+    /// Indicates the end of a YAML stream.
     StreamEnd,
+
+    /// Indicates the start of a YAML document.
     DocumentStart,
+
+    /// Indicates the end of a YAML document.
     DocumentEnd,
+
+    /// Represents an alias event, referring to a previously defined anchor.
+    ///
+    /// The `Anchor` type represents the identifier of the alias.
     Alias(Anchor),
+
+    /// Represents a scalar event, containing a scalar value.
+    ///
+    /// The `Scalar<'input>` type represents the scalar value and its associated
+    /// properties, such as the anchor, tag, and style.
+    ///
+    /// The `'input` lifetime parameter indicates the lifetime of the input data
+    /// associated with the scalar value.
     Scalar(Scalar<'input>),
+
+    /// Represents the start of a sequence event.
+    ///
+    /// The `SequenceStart` type contains additional properties associated with
+    /// the sequence, such as the anchor and tag.
     SequenceStart(SequenceStart),
+
+    /// Indicates the end of a sequence event.
     SequenceEnd,
+
+    /// Represents the start of a mapping event.
+    ///
+    /// The `MappingStart` type contains additional properties associated with
+    /// the mapping, such as the anchor and tag.
     MappingStart(MappingStart),
+
+    /// Indicates the end of a mapping event.
     MappingEnd,
 }
 
-pub(crate) struct Scalar<'input> {
+/// Represents a scalar value in a YAML document.
+pub struct Scalar<'input> {
+    /// The anchor associated with the scalar value, if any.
+    /// An anchor is a named reference to the scalar value that can be referred to later in the document.
     pub anchor: Option<Anchor>,
+
+    /// The tag associated with the scalar value, if any.
+    /// A tag specifies the data type or semantic meaning of the scalar value.
     pub tag: Option<Tag>,
+
+    /// The actual value of the scalar, stored as a boxed slice of bytes.
+    /// The value is stored as a byte slice to support arbitrary data types.
     pub value: Box<[u8]>,
+
+    /// The style of the scalar value, indicating how it is represented in the YAML document.
+    /// The `ScalarStyle` enum represents the different styles, such as plain, single-quoted, double-quoted, etc.
     pub style: ScalarStyle,
+
+    /// The original representation of the scalar value in the YAML document, if available.
+    /// This field is an optional reference to the original byte slice from the input.
+    /// It can be used to preserve the exact formatting of the scalar value.
     pub repr: Option<&'input [u8]>,
 }
 
+/// Represents the start of a sequence in a YAML document.
 #[derive(Debug)]
-pub(crate) struct SequenceStart {
+pub struct SequenceStart {
+    /// The anchor associated with the sequence, if any.
+    /// An anchor is a named reference to the sequence that can be referred to later in the document.
     pub anchor: Option<Anchor>,
+
+    /// The tag associated with the sequence, if any.
+    /// A tag specifies the data type or semantic meaning of the sequence.
     pub tag: Option<Tag>,
 }
 
+/// Represents the start of a mapping in a YAML document.
 #[derive(Debug)]
-pub(crate) struct MappingStart {
+pub struct MappingStart {
+    /// The anchor associated with the mapping, if any.
+    /// An anchor is a named reference to the mapping that can be referred to later in the document.
     pub anchor: Option<Anchor>,
+
+    /// The tag associated with the mapping, if any.
+    /// A tag specifies the data type or semantic meaning of the mapping.
     pub tag: Option<Tag>,
 }
 
+/// Represents an anchor in a YAML document.
+/// An anchor is a named reference to a value that can be referred to later in the document.
 #[derive(Ord, PartialOrd, Eq, PartialEq)]
-pub(crate) struct Anchor(Box<[u8]>);
+pub struct Anchor(Box<[u8]>);
 
+/// Represents the style of a scalar value in a YAML document.
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
-pub(crate) enum ScalarStyle {
+pub enum ScalarStyle {
+    /// Represents a plain scalar style, where the value is not enclosed in quotes.
     Plain,
+
+    /// Represents a single-quoted scalar style, where the value is enclosed in single quotes.
     SingleQuoted,
+
+    /// Represents a double-quoted scalar style, where the value is enclosed in double quotes.
     DoubleQuoted,
+
+    /// Represents a literal scalar style, where the value is presented as a literal block.
     Literal,
+
+    /// Represents a folded scalar style, where the value is presented as a folded block.
     Folded,
 }
 
 impl<'input> Parser<'input> {
+    /// Creates a new `Parser` instance with the given input data.
+    ///
+    /// The `input` parameter is of type `Cow<'input, [u8]>`, which allows the parser
+    /// to accept both borrowed slices and owned vectors of bytes as input.
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is an error initializing the underlying `libyaml` parser.
     pub fn new(input: Cow<'input, [u8]>) -> Parser<'input> {
         let owned = Owned::<ParserPinned<'input>>::new_uninit();
         let pin = unsafe {
@@ -82,22 +196,19 @@ impl<'input> Parser<'input> {
             if sys::yaml_parser_initialize(parser).fail {
                 panic!("malloc error: {}", Error::parse_error(parser));
             }
-            sys::yaml_parser_set_encoding(
-                parser,
-                sys::YAML_UTF8_ENCODING,
-            );
-            sys::yaml_parser_set_input_string(
-                parser,
-                input.as_ptr(),
-                input.len() as u64,
-            );
+            sys::yaml_parser_set_encoding(parser, sys::YAML_UTF8_ENCODING);
+            sys::yaml_parser_set_input_string(parser, input.as_ptr(), input.len() as u64);
             addr_of_mut!((*owned.ptr).input).write(input);
             Owned::assume_init(owned)
         };
         Parser { pin }
     }
 
-    pub fn next(&mut self) -> Result<(Event<'input>, Mark)> {
+    /// Parses the next YAML event from the input.
+    ///
+    /// Returns a `Result` containing the parsed `Event` and its corresponding `Mark` on success,
+    /// or an `Error` if parsing fails.
+    pub fn parse_next_event(&mut self) -> Result<(Event<'input>, Mark)> {
         let mut event = MaybeUninit::<sys::yaml_event_t>::uninit();
         unsafe {
             let parser = addr_of_mut!((*self.pin.ptr).sys);

@@ -14,18 +14,51 @@ use crate::{
 use std::{borrow::Cow, collections::BTreeMap, sync::Arc};
 
 /// Represents a YAML loader.
-pub(crate) struct Loader<'input> {
-    parser: Option<Parser<'input>>,
-    document_count: usize,
+pub struct Loader<'input> {
+    /// The YAML parser used to parse the input.
+    ///
+    /// The `Parser` type is defined in the `libyaml` module and represents
+    /// a low-level YAML parser.
+    ///
+    /// The `'input` lifetime parameter indicates the lifetime of the input data
+    /// being parsed. It ensures that the `Loader` does not outlive the input data.
+    pub parser: Option<Parser<'input>>,
+
+    /// The count of documents parsed by the loader.
+    ///
+    /// This field keeps track of the number of YAML documents encountered during parsing.
+    pub document_count: usize,
 }
 
 /// Represents a YAML document.
-pub(crate) struct Document<'input> {
+pub struct Document<'input> {
     /// The parsed events of the document.
+    ///
+    /// This field contains a vector of `(Event<'input>, Mark)` tuples, where:
+    /// - `Event<'input>` represents a parsed YAML event, such as a scalar, sequence, or mapping.
+    ///   The `'input` lifetime parameter indicates the lifetime of the input data associated
+    ///   with the event.
+    /// - `Mark` represents the position in the input where the event was encountered.
     pub events: Vec<(Event<'input>, Mark)>,
+
     /// Any error encountered during parsing.
+    ///
+    /// This field is an optional `Arc<ErrorImpl>`, where:
+    /// - `Arc` is a reference-counted smart pointer that allows multiple ownership of the error.
+    /// - `ErrorImpl` is the underlying error type that holds the details of the parsing error.
+    ///
+    /// If an error occurs during parsing, this field will contain `Some(error)`. Otherwise, it
+    /// will be `None`.
     pub error: Option<Arc<ErrorImpl>>,
+
     /// Map from alias id to index in events.
+    ///
+    /// This field is a `BTreeMap` that maps alias ids to their corresponding index in the
+    /// `events` vector.
+    ///
+    /// In YAML, an alias is a reference to a previously defined anchor. When an alias is
+    /// encountered during parsing, its id is used to look up the index of the corresponding
+    /// event in the `events` vector.
     pub aliases: BTreeMap<usize, usize>,
 }
 
@@ -84,7 +117,7 @@ impl<'input> Loader<'input> {
         };
 
         loop {
-            let (event, mark) = match parser.next() {
+            let (event, mark) = match parser.parse_next_event() {
                 Ok((event, mark)) => (event, mark),
                 Err(err) => {
                     document.error = Some(Error::from(err).shared());

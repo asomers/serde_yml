@@ -4,10 +4,15 @@
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
 mod cstr;
+/// YAML emitter.
 pub mod emitter;
+/// Error handling.
 pub mod error;
+/// YAML parser.
 pub mod parser;
+/// Tag directive handling.
 pub mod tag;
+
 mod util;
 
 use self::error::Error;

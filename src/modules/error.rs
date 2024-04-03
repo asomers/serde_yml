@@ -3,15 +3,17 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT indicates dual licensing under Apache 2.0 or MIT licenses.
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
-use crate::libyaml::{emitter, error as libyaml};
-use crate::modules::path::Path;
+use crate::{
+    libyaml::{emitter, error as libyaml},
+    modules::path::Path,
+};
 use serde::{de, ser};
-use std::error::Error as StdError;
-use std::fmt::{self, Debug, Display};
-use std::io;
-use std::result;
-use std::string;
-use std::sync::Arc;
+use std::{
+    error::Error as StdError,
+    fmt::{self, Debug, Display},
+    io, result, string,
+    sync::Arc,
+};
 
 /// An error that happened serializing or deserializing YAML data.
 pub struct Error(Box<ErrorImpl>);
@@ -19,67 +21,89 @@ pub struct Error(Box<ErrorImpl>);
 /// Alias for a `Result` with the error type `serde_yml::Error`.
 pub type Result<T> = result::Result<T, Error>;
 
+/// The internal representation of an error.
 #[derive(Debug)]
-pub(crate) enum ErrorImpl {
+pub enum ErrorImpl {
+    /// A generic error message with an optional position.
     Message(String, Option<Pos>),
-
+    /// An error originating from the `libyaml` library.
     Libyaml(libyaml::Error),
+    /// An I/O error.
     Io(io::Error),
+    /// An error encountered while converting a byte slice to a string using UTF-8 encoding.
     FromUtf8(string::FromUtf8Error),
-
+    /// An error indicating that the end of the YAML stream was reached unexpectedly.
     EndOfStream,
+    /// An error indicating that more than one YAML document was encountered.
     MoreThanOneDocument,
+    /// An error indicating that the recursion limit was exceeded.
     RecursionLimitExceeded(libyaml::Mark),
+    /// An error indicating that the repetition limit was exceeded.
     RepetitionLimitExceeded,
+    /// An error indicating that byte-based YAML is unsupported.
     BytesUnsupported,
+    /// An error indicating that an unknown anchor was encountered.
     UnknownAnchor(libyaml::Mark),
+    /// An error indicating that serializing a nested enum is not supported.
     SerializeNestedEnum,
+    /// An error indicating that a scalar value was encountered in a merge operation.
     ScalarInMerge,
+    /// An error indicating that a tagged value was encountered in a merge operation.
     TaggedInMerge,
+    /// An error indicating that a scalar value was encountered in a merge element.
     ScalarInMergeElement,
+    /// An error indicating that a sequence was encountered in a merge element.
     SequenceInMergeElement,
+    /// An error indicating that an empty tag was encountered.
     EmptyTag,
+    /// An error indicating that parsing a number failed.
     FailedToParseNumber,
-
+    /// A shared error implementation.
     Shared(Arc<ErrorImpl>),
 }
 
+/// Represents a position in the YAML input.
 #[derive(Debug)]
-pub(crate) struct Pos {
+pub struct Pos {
+    /// The mark representing the position.
     mark: libyaml::Mark,
+    /// The path to the position.
     path: String,
 }
 
 /// The input location that an error occurred.
 #[derive(Debug)]
 pub struct Location {
+    /// The byte index of the error.
     index: usize,
+    /// The line of the error.
     line: usize,
+    /// The column of the error.
     column: usize,
 }
 
 impl Location {
-    /// The byte index of the error
+    /// The byte index of the error.
     pub fn index(&self) -> usize {
         self.index
     }
 
-    /// The line of the error
+    /// The line of the error.
     pub fn line(&self) -> usize {
         self.line
     }
 
-    /// The column of the error
+    /// The column of the error.
     pub fn column(&self) -> usize {
         self.column
     }
 
-    // This is to keep decoupled with the yaml crate
+    // This is to keep decoupled with the yaml crate.
     #[doc(hidden)]
     fn from_mark(mark: libyaml::Mark) -> Self {
         Location {
             index: mark.index() as usize,
-            // `line` and `column` returned from libyaml are 0-indexed but all error messages add +1 to this value
+            // `line` and `column` returned from libyaml are 0-indexed but all error messages add +1 to this value.
             line: mark.line() as usize + 1,
             column: mark.column() as usize + 1,
         }
@@ -90,21 +114,32 @@ impl Error {
     /// Returns the Location from the error if one exists.
     ///
     /// Not all types of errors have a location so this can return `None`.
-    ///
     pub fn location(&self) -> Option<Location> {
         self.0.location()
     }
+
+    /// Creates a new `Error` from an `ErrorImpl`.
+    pub fn shared(self) -> Arc<ErrorImpl> {
+        if let ErrorImpl::Shared(err) = *self.0 {
+            err
+        } else {
+            Arc::from(self.0)
+        }
+    }
 }
 
-pub(crate) fn new(inner: ErrorImpl) -> Error {
+/// Creates a new `Error` from an `ErrorImpl`.
+pub fn new(inner: ErrorImpl) -> Error {
     Error(Box::new(inner))
 }
 
-pub(crate) fn shared(shared: Arc<ErrorImpl>) -> Error {
+/// Creates a new `Error` from a shared `ErrorImpl`.
+pub fn shared(shared: Arc<ErrorImpl>) -> Error {
     Error(Box::new(ErrorImpl::Shared(shared)))
 }
 
-pub(crate) fn fix_mark(
+/// Fixes the mark and path in an error.
+pub fn fix_mark(
     mut error: Error,
     mark: libyaml::Mark,
     path: Path<'_>,
@@ -116,16 +151,6 @@ pub(crate) fn fix_mark(
         });
     }
     error
-}
-
-impl Error {
-    pub(crate) fn shared(self) -> Arc<ErrorImpl> {
-        if let ErrorImpl::Shared(err) = *self.0 {
-            err
-        } else {
-            Arc::from(self.0)
-        }
-    }
 }
 
 impl From<libyaml::Error> for Error {
