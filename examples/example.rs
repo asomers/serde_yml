@@ -3,10 +3,21 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT indicates dual licensing under Apache 2.0 or MIT licenses.
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
-//! Examples for the `loader` module.
+//! # Serde YML Examples
+//!
+//! This crate contains examples that demonstrate the usage of the Serde YML library.
+//!
+//! The examples are organized into the following modules:
+//!
+//! - `loader` - Contains the example modules for the `loader` module.
+//! - `with` - Contains the example modules for the `with` module.
+//!
 
 /// Contains the example modules for the `loader` module.
 mod loader;
+
+/// Contains the example modules for the `serializer` module.
+mod serializer;
 
 /// Examples for the `with` module.
 mod with;
@@ -19,6 +30,9 @@ mod with;
 fn main() {
     // Run the example module `loader`.
     loader::main();
+
+    // Run the example module `serializer`.
+    serializer::main();
 
     // Run the example module `with`.
     with::main();
