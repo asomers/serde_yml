@@ -11,7 +11,8 @@ Serde YML is a Rust library that simplifies YAML serialization and deserializati
 ## Credits
 
 - This library is a fork of the excellent [Serde YAML][17] library by [David Tolnay][16].
-- David deserves the lion's share of the credit behind the work he has done on his library. The intent of this repository is purely to keep an active version of his library and continue my learning into Rust.
+- David deserves the lion's share of the credit behind the work he has done on his library.
+- The intent of this repository is purely to keep an active version of his library and continue my learning into Rust.
 - For those migrating from the orginal version of [Serde YAML][17], please be aware that this Library is not intending to replace at all the original one.
 
 <!-- markdownlint-disable MD033 MD041 -->
