@@ -14,7 +14,7 @@ name = "serde_yml"
 readme = "README.md"
 repository = "https://github.com/sebastienrousseau/serde_yml"
 rust-version = "1.64"
-version = "0.0.4"
+version = "0.0.5"
 include = [
     "/CONTRIBUTING.md",
     "/LICENSE-APACHE",
@@ -47,7 +47,7 @@ indexmap = "2.2.6"
 itoa = "1.0.11"
 log = {version="0.4.21", features = ["std"] }
 ryu = "1.0.17"
-serde = { version = "1.0.197", features = ["derive"] }
+serde = { version = "1.0.198", features = ["derive"] }
 unsafe-libyaml = "0.2.11"
 dtt = "0.0.5"
 rlg = "0.0.3"
@@ -55,9 +55,9 @@ uuid = { version = "1.8.0", features = ["v4"] }
 xtasks = "0.0.2"
 
 [dev-dependencies]
-anyhow = "1.0.81"
+anyhow = "1.0.82"
 indoc = "2.0.5"
-serde_derive = "1.0.197"
+serde_derive = "1.0.198"
 
 # Unix platforms use OpenSSL for now to provide SSL functionality
 [target.'cfg(all(unix, not(target_os = "macos")))'.dependencies]
