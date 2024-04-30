@@ -5,6 +5,7 @@
 
 #![allow(clippy::zero_sized_map_values)]
 
+use std::fmt::Formatter;
 use indoc::indoc;
 use serde::de::Deserialize;
 #[cfg(not(miri))]
@@ -55,18 +56,18 @@ fn test_incorrect_type() {
 #[test]
 fn test_incorrect_nested_type() {
     #[derive(Deserialize, Debug)]
-    pub struct A {
+    pub(crate) struct A {
         #[allow(dead_code)]
-        pub b: Vec<B>,
+        pub(crate) b: Vec<B>,
     }
     #[derive(Deserialize, Debug)]
-    pub enum B {
+    pub(crate) enum B {
         C(#[allow(dead_code)] C),
     }
     #[derive(Deserialize, Debug)]
-    pub struct C {
+    pub(crate) struct C {
         #[allow(dead_code)]
-        pub d: bool,
+        pub(crate) d: bool,
     }
     let yaml = indoc! {"
         b:
@@ -86,11 +87,11 @@ fn test_empty() {
 #[test]
 fn test_missing_field() {
     #[derive(Deserialize, Debug)]
-    pub struct Basic {
+    pub(crate) struct Basic {
         #[allow(dead_code)]
-        pub v: bool,
+        pub(crate) v: bool,
         #[allow(dead_code)]
-        pub w: bool,
+        pub(crate) w: bool,
     }
     let yaml = indoc! {"
         ---
@@ -113,9 +114,9 @@ fn test_unknown_anchor() {
 #[test]
 fn test_ignored_unknown_anchor() {
     #[derive(Deserialize, Debug)]
-    pub struct Wrapper {
+    pub(crate) struct Wrapper {
         #[allow(dead_code)]
-        pub c: (),
+        pub(crate) c: (),
     }
     let yaml = indoc! {"
         b: [*a]
@@ -154,11 +155,11 @@ fn test_second_document_syntax_error() {
 
     let mut de = Deserializer::from_str(yaml);
     let first_doc = de.next().unwrap();
-    let result = <usize as serde::Deserialize>::deserialize(first_doc);
+    let result = <usize as Deserialize>::deserialize(first_doc);
     assert_eq!(0, result.unwrap());
 
     let second_doc = de.next().unwrap();
-    let result = <usize as serde::Deserialize>::deserialize(second_doc);
+    let result = <usize as Deserialize>::deserialize(second_doc);
     let expected =
         "did not find expected node content at line 4 column 1, while parsing a block node";
     assert_eq!(expected, result.unwrap_err().to_string());
@@ -167,7 +168,7 @@ fn test_second_document_syntax_error() {
 #[test]
 fn test_missing_enum_tag() {
     #[derive(Deserialize, Debug)]
-    pub enum E {
+    pub(crate) enum E {
         V(#[allow(dead_code)] usize),
     }
     let yaml = indoc! {r#"
@@ -182,11 +183,11 @@ fn test_missing_enum_tag() {
 #[test]
 fn test_serialize_nested_enum() {
     #[derive(Serialize, Debug)]
-    pub enum Outer {
+    pub(crate) enum Outer {
         Inner(Inner),
     }
     #[derive(Serialize, Debug)]
-    pub enum Inner {
+    pub(crate) enum Inner {
         Newtype(usize),
         Tuple(usize, usize),
         Struct { x: usize },
@@ -221,11 +222,11 @@ fn test_serialize_nested_enum() {
 #[test]
 fn test_deserialize_nested_enum() {
     #[derive(Deserialize, Debug)]
-    pub enum Outer {
+    pub(crate) enum Outer {
         Inner(#[allow(dead_code)] Inner),
     }
     #[derive(Deserialize, Debug)]
-    pub enum Inner {
+    pub(crate) enum Inner {
         Variant(#[allow(dead_code)] Vec<usize>),
     }
 
@@ -254,7 +255,7 @@ fn test_deserialize_nested_enum() {
 #[test]
 fn test_variant_not_a_seq() {
     #[derive(Deserialize, Debug)]
-    pub enum E {
+    pub(crate) enum E {
         V(#[allow(dead_code)] usize),
     }
     let yaml = indoc! {"
@@ -270,11 +271,11 @@ fn test_variant_not_a_seq() {
 #[test]
 fn test_struct_from_sequence() {
     #[derive(Deserialize, Debug)]
-    pub struct Struct {
+    pub(crate) struct Struct {
         #[allow(dead_code)]
-        pub x: usize,
+        pub(crate) x: usize,
         #[allow(dead_code)]
-        pub y: usize,
+        pub(crate) y: usize,
     }
     let yaml = indoc! {"
         [0, 0]
@@ -346,9 +347,9 @@ fn test_long_tuple() {
 #[test]
 fn test_invalid_scalar_type() {
     #[derive(Deserialize, Debug)]
-    pub struct S {
+    pub(crate) struct S {
         #[allow(dead_code)]
-        pub x: [i32; 1],
+        pub(crate) x: [i32; 1],
     }
 
     let yaml = "x: ''\n";
@@ -360,9 +361,9 @@ fn test_invalid_scalar_type() {
 #[test]
 fn test_infinite_recursion_objects() {
     #[derive(Deserialize, Debug)]
-    pub struct S {
+    pub(crate) struct S {
         #[allow(dead_code)]
-        pub x: Option<Box<S>>,
+        pub(crate) x: Option<Box<S>>,
     }
 
     let yaml = "&a {'x': *a}";
@@ -374,9 +375,9 @@ fn test_infinite_recursion_objects() {
 #[test]
 fn test_infinite_recursion_arrays() {
     #[derive(Deserialize, Debug)]
-    pub struct S(
-        #[allow(dead_code)] pub usize,
-        #[allow(dead_code)] pub Option<Box<S>>,
+    pub(crate) struct S(
+        #[allow(dead_code)] pub(crate) usize,
+        #[allow(dead_code)] pub(crate) Option<Box<S>>,
     );
 
     let yaml = "&a [0, *a]";
@@ -388,7 +389,7 @@ fn test_infinite_recursion_arrays() {
 #[test]
 fn test_infinite_recursion_newtype() {
     #[derive(Deserialize, Debug)]
-    pub struct S(#[allow(dead_code)] pub Option<Box<S>>);
+    pub(crate) struct S(#[allow(dead_code)] pub(crate) Option<Box<S>>);
 
     let yaml = "&a [*a]";
     let expected = "recursion limit exceeded";
@@ -399,9 +400,9 @@ fn test_infinite_recursion_newtype() {
 #[test]
 fn test_finite_recursion_objects() {
     #[derive(Deserialize, Debug)]
-    pub struct S {
+    pub(crate) struct S {
         #[allow(dead_code)]
-        pub x: Option<Box<S>>,
+        pub(crate) x: Option<Box<S>>,
     }
 
     let yaml = "{'x':".repeat(1_000) + &"}".repeat(1_000);
@@ -413,9 +414,9 @@ fn test_finite_recursion_objects() {
 #[test]
 fn test_finite_recursion_arrays() {
     #[derive(Deserialize, Debug)]
-    pub struct S(
-        #[allow(dead_code)] pub usize,
-        #[allow(dead_code)] pub Option<Box<S>>,
+    pub(crate) struct S(
+        #[allow(dead_code)] pub(crate) usize,
+        #[allow(dead_code)] pub(crate) Option<Box<S>>,
     );
 
     let yaml = "[0, ".repeat(1_000) + &"]".repeat(1_000);
@@ -434,7 +435,7 @@ fn test_billion_laughs() {
 
         fn expecting(
             &self,
-            formatter: &mut fmt::Formatter,
+            formatter: &mut Formatter<'_>,
         ) -> fmt::Result {
             formatter.write_str("exponential blowup")
         }

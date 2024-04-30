@@ -17,7 +17,7 @@ use uuid::Uuid;
 /// # Examples
 ///
 /// ```
-/// use serde_yml::utilities::uuid::generate_unique_string;
+/// use serde_yml::utilities::generator_uuid::generate_unique_string;
 ///
 /// let unique_string = generate_unique_string();
 /// println!("Unique string: {}", unique_string);

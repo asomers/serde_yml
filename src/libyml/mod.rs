@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT indicates dual licensing under Apache 2.0 or MIT licenses.
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
+/// C string handling.
 mod cstr;
 /// YAML emitter.
 pub mod emitter;
@@ -12,7 +13,7 @@ pub mod error;
 pub mod parser;
 /// Tag directive handling.
 pub mod tag;
-
-mod util;
+/// Utility types.
+pub mod util;
 
 use self::error::Error;

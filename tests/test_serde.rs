@@ -640,10 +640,10 @@ fn test_tagged_map_value() {
 #[test]
 fn test_value() {
     #[derive(Serialize, Deserialize, PartialEq, Debug)]
-    pub struct GenericInstructions {
+    pub(crate) struct GenericInstructions {
         #[serde(rename = "type")]
-        pub typ: String,
-        pub config: Value,
+        pub(crate) typ: String,
+        pub(crate) config: Value,
     }
     let thing = GenericInstructions {
         typ: "primary".to_string(),
@@ -673,7 +673,7 @@ fn test_value() {
 fn test_mapping() {
     #[derive(Serialize, Deserialize, PartialEq, Debug)]
     struct Data {
-        pub substructure: Mapping,
+        pub(crate) substructure: Mapping,
     }
 
     let mut thing = Data {
@@ -701,7 +701,7 @@ fn test_mapping() {
 fn test_long_string() {
     #[derive(Serialize, Deserialize, PartialEq, Debug)]
     struct Data {
-        pub string: String,
+        pub(crate) string: String,
     }
 
     let thing = Data {

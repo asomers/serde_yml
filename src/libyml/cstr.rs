@@ -20,20 +20,20 @@ unsafe impl Send for CStr<'_> {}
 unsafe impl Sync for CStr<'_> {}
 
 impl<'a> CStr<'a> {
-    pub fn from_bytes_with_nul(bytes: &'static [u8]) -> Self {
+    pub(crate) fn from_bytes_with_nul(bytes: &'static [u8]) -> Self {
         assert_eq!(bytes.last(), Some(&b'\0'));
         let ptr = NonNull::from(bytes).cast();
         Self::from_ptr(ptr)
     }
 
-    pub fn from_ptr(ptr: NonNull<i8>) -> Self {
+    pub(crate) fn from_ptr(ptr: NonNull<i8>) -> Self {
         CStr {
             ptr: ptr.cast(),
             marker: PhantomData,
         }
     }
 
-    pub fn len(self) -> usize {
+    pub(crate) fn len(self) -> usize {
         let start = self.ptr.as_ptr();
         let mut end = start;
         while unsafe { *end != 0 } {
@@ -42,7 +42,7 @@ impl<'a> CStr<'a> {
         unsafe { end.offset_from(start) as usize }
     }
 
-    pub fn to_bytes(self) -> &'a [u8] {
+    pub(crate) fn to_bytes(self) -> &'a [u8] {
         let len = self.len();
         unsafe { slice::from_raw_parts(self.ptr.as_ptr(), len) }
     }

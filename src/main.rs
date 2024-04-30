@@ -33,20 +33,20 @@
 //! This application allows you to interact with and use the functionality provided by the `serde_yml` crate.
 
 use serde_yml::run;
-use std::env;
+// use std::env;
 
 fn main() {
     // Combined check for "xtask" and execution of associated task
-    let found_xtask = env::args_os().any(|arg| arg == "xtask");
-    if found_xtask {
-        if let Err(e) = xtasks::tasks::ci::CIBuilder::default().run() {
-            eprintln!("Error executing CI task: {e}");
-            std::process::exit(1);
-        }
-    } else {
+    // let found_xtask = env::args_os().any(|arg| arg == "xtask");
+    // if found_xtask {
+    //     if let Err(e) = xtasks::tasks::ci::CIBuilder::default().run() {
+    //         eprintln!("Error executing CI task: {e}");
+    //         std::process::exit(1);
+    //     }
+    // } else {
         match run() {
             Ok(_) => println!("Program completed successfully."),
             Err(e) => eprintln!("Program encountered an error: {}", e),
         }
-    }
+    // }
 }

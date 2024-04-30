@@ -52,6 +52,7 @@ type Result<T, E = Error> = std::result::Result<T, E>;
 ///     Ok(())
 /// }
 /// ```
+#[derive(Debug)]
 pub struct Serializer<W> {
     depth: usize,
     state: State,
@@ -59,7 +60,8 @@ pub struct Serializer<W> {
     writer: PhantomData<W>,
 }
 
-enum State {
+#[derive(Debug)]
+pub(crate) enum State {
     NothingInParticular,
     CheckForTag,
     CheckForDuplicateTag,
@@ -105,7 +107,7 @@ where
         Ok(*unsafe { Box::from_raw(Box::into_raw(writer).cast::<W>()) })
     }
 
-    fn emit_scalar(&mut self, mut scalar: Scalar) -> Result<()> {
+    fn emit_scalar(&mut self, mut scalar: Scalar<'_>) -> Result<()> {
         self.flush_mapping_start()?;
         if let Some(tag) = self.take_tag() {
             scalar.tag = Some(tag);
@@ -182,7 +184,7 @@ where
     }
 }
 
-impl<'a, W> ser::Serializer for &'a mut Serializer<W>
+impl<W> ser::Serializer for &mut Serializer<W>
 where
     W: io::Write,
 {
@@ -328,12 +330,12 @@ where
     fn serialize_str(self, value: &str) -> Result<()> {
         struct InferScalarStyle;
 
-        impl<'de> Visitor<'de> for InferScalarStyle {
+        impl Visitor<'_> for InferScalarStyle {
             type Value = ScalarStyle;
 
             fn expecting(
                 &self,
-                formatter: &mut fmt::Formatter,
+                formatter: &mut fmt::Formatter<'_>,
             ) -> fmt::Result {
                 formatter.write_str("I wonder")
             }
@@ -567,7 +569,7 @@ where
     }
 }
 
-impl<'a, W> ser::SerializeSeq for &'a mut Serializer<W>
+impl<W> ser::SerializeSeq for &mut Serializer<W>
 where
     W: io::Write,
 {
@@ -586,7 +588,7 @@ where
     }
 }
 
-impl<'a, W> ser::SerializeTuple for &'a mut Serializer<W>
+impl<W> ser::SerializeTuple for &mut Serializer<W>
 where
     W: io::Write,
 {
@@ -605,7 +607,7 @@ where
     }
 }
 
-impl<'a, W> ser::SerializeTupleStruct for &'a mut Serializer<W>
+impl<W> ser::SerializeTupleStruct for &mut Serializer<W>
 where
     W: io::Write,
 {
@@ -624,7 +626,7 @@ where
     }
 }
 
-impl<'a, W> ser::SerializeTupleVariant for &'a mut Serializer<W>
+impl<W> ser::SerializeTupleVariant for &mut Serializer<W>
 where
     W: io::Write,
 {
@@ -643,7 +645,7 @@ where
     }
 }
 
-impl<'a, W> ser::SerializeMap for &'a mut Serializer<W>
+impl<W> ser::SerializeMap for &mut Serializer<W>
 where
     W: io::Write,
 {
@@ -695,7 +697,7 @@ where
     }
 }
 
-impl<'a, W> ser::SerializeStruct for &'a mut Serializer<W>
+impl<W> ser::SerializeStruct for &mut Serializer<W>
 where
     W: io::Write,
 {
@@ -719,7 +721,7 @@ where
     }
 }
 
-impl<'a, W> ser::SerializeStructVariant for &'a mut Serializer<W>
+impl<W> ser::SerializeStructVariant for &mut Serializer<W>
 where
     W: io::Write,
 {

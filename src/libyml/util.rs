@@ -17,7 +17,7 @@ pub(crate) struct Owned<T, Init = T> {
 }
 
 impl<T> Owned<T> {
-    pub fn new_uninit() -> Owned<MaybeUninit<T>, T> {
+    pub(crate) fn new_uninit() -> Owned<MaybeUninit<T>, T> {
         // FIXME: use Box::new_uninit when stable
         let boxed = Box::new(MaybeUninit::<T>::uninit());
         Owned {
@@ -28,7 +28,7 @@ impl<T> Owned<T> {
         }
     }
 
-    pub unsafe fn assume_init(
+    pub(crate) unsafe fn assume_init(
         definitely_init: Owned<MaybeUninit<T>, T>,
     ) -> Owned<T> {
         let ptr = definitely_init.ptr;
@@ -42,7 +42,7 @@ impl<T> Owned<T> {
 
 #[repr(transparent)]
 pub(crate) struct InitPtr<T> {
-    pub ptr: *mut T,
+    pub(crate) ptr: *mut T,
 }
 
 impl<T, Init> Deref for Owned<T, Init> {

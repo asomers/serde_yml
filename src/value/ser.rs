@@ -57,6 +57,7 @@
     ///     input.serialize(serde_yml::value::Serializer)
     /// }
     /// ```
+    #[derive(Clone, Copy,Debug)]
     pub struct Serializer;
 
     impl ser::Serializer for Serializer {
@@ -291,6 +292,7 @@
     }
 
     /// A helper struct to serialize arrays.
+    #[derive(Debug)]
     pub struct SerializeArray {
         sequence: Sequence,
     }
@@ -345,6 +347,7 @@
     }
 
     /// A helper struct to serialize tuple variants.
+    #[derive(Debug)]
     pub struct SerializeTupleVariant {
         tag: &'static str,
         sequence: Sequence,
@@ -371,6 +374,7 @@
     }
 
     /// An enum to handle the serialization of maps.
+    #[derive(Debug)]
     pub enum SerializeMap {
         /// Represents a map with a single key-value pair, used to check for a tag.
         CheckForTag,
@@ -889,6 +893,7 @@
     }
 
     /// A helper struct to serialize structs.
+    #[derive(Debug)]
     pub struct SerializeStruct {
         mapping: Mapping,
     }
@@ -915,6 +920,7 @@
     }
 
     /// A helper struct to serialize struct variants.
+    #[derive(Debug)]
     pub struct SerializeStructVariant {
         tag: &'static str,
         mapping: Mapping,

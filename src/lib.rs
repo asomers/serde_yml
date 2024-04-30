@@ -185,7 +185,8 @@
 )]
 #![crate_name = "serde_yml"]
 #![crate_type = "lib"]
-use crate::utilities::uuid::generate_unique_string;
+
+use crate::utilities::generator_uuid::generate_unique_string;
 use dtt::DateTime;
 use rlg::{log_format::LogFormat, log_level::LogLevel, macro_log};
 use std::{fs::File, io::Write};

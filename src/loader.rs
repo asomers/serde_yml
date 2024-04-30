@@ -14,6 +14,7 @@ use crate::{
 use std::{borrow::Cow, collections::BTreeMap, sync::Arc};
 
 /// Represents a YAML loader.
+#[derive(Debug)]
 pub struct Loader<'input> {
     /// The YAML parser used to parse the input.
     ///

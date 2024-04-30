@@ -11,6 +11,7 @@
     clippy::uninlined_format_args
 )]
 
+use std::fmt::Formatter;
 use indoc::indoc;
 use serde_derive::Deserialize;
 use serde_yml::{Deserializer, Number, Value};
@@ -47,7 +48,7 @@ where
     let deserialized: T = serde_yml::from_str(yaml).unwrap();
     assert_eq!(*expected, deserialized);
 
-    serde_yml::from_str::<serde_yml::Value>(yaml).unwrap();
+    serde_yml::from_str::<Value>(yaml).unwrap();
     serde_yml::from_str::<serde::de::IgnoredAny>(yaml).unwrap();
 }
 
@@ -60,7 +61,7 @@ where
         seed.deserialize(Deserializer::from_str(yaml)).unwrap();
     assert_eq!(*expected, deserialized);
 
-    serde_yml::from_str::<serde_yml::Value>(yaml).unwrap();
+    serde_yml::from_str::<Value>(yaml).unwrap();
     serde_yml::from_str::<serde::de::IgnoredAny>(yaml).unwrap();
 }
 
@@ -333,7 +334,7 @@ fn test_number_alias_as_string() {
 fn test_de_mapping() {
     #[derive(Debug, Deserialize, PartialEq)]
     struct Data {
-        pub substructure: serde_yml::Mapping,
+        pub(crate) substructure: serde_yml::Mapping,
     }
     let yaml = indoc! {"
         substructure:
@@ -491,12 +492,12 @@ fn test_stateful() {
             D: serde::de::Deserializer<'de>,
         {
             struct Visitor(i64);
-            impl<'de> serde::de::Visitor<'de> for Visitor {
+            impl serde::de::Visitor<'_> for Visitor {
                 type Value = i64;
 
                 fn expecting(
                     &self,
-                    formatter: &mut std::fmt::Formatter,
+                    formatter: &mut Formatter<'_>,
                 ) -> std::fmt::Result {
                     write!(formatter, "an integer")
                 }
@@ -579,7 +580,7 @@ fn test_ignore_tag() {
 #[test]
 fn test_no_required_fields() {
     #[derive(Deserialize, PartialEq, Debug)]
-    pub struct NoRequiredFields {
+    pub(crate) struct NoRequiredFields {
         optional: Option<usize>,
     }
 
@@ -753,7 +754,7 @@ fn test_parse_number() {
 fn test_enum_untagged() {
     #[derive(Deserialize, PartialEq, Debug)]
     #[serde(untagged)]
-    pub enum UntaggedEnum {
+    pub(crate) enum UntaggedEnum {
         A {
             r#match: bool,
         },
