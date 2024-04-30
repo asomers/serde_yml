@@ -16,24 +16,61 @@
 //!
 //! ## Overview
 //!
-//! [`Serde YML`][00] is a Rust library that simplifies YAML serialization and deserialization using Serde. Effortlessly convert Rust types to YAML and vice versa. Supports custom structs, enums, and error handling.
+//! [Serde YML][00] is a Rust library that simplifies YAML serialization and deserialization using the popular [Serde][01] framework. It provides a convenient and efficient way to convert Rust data structures to YAML format and vice versa.
+//!
+//!## Credits and Acknowledgements
+//!
+//!This new library draws inspiration from the excellent work done by [David Tolnay][04] and the maintainers of the [serde-yaml][05] library. While Serde YML started as a fork of serde-yaml, it has now evolved into a separate library with its own goals and direction in mind.
+//!
+//!If you are currently using serde-yaml in your projects, we recommend carefully evaluating your requirements and considering the stability and maturity of the original library before migrating to Serde YML.
+//!
+//!Finally, I would like to express my sincere gratitude to [David Tolnay][04] and the [serde-yaml][05] team for their valuable contributions to the Rust community and for inspiring this project.
 //!
 //! ## Features
 //!
-//! - Serialize Rust data structures to YAML format
-//! - Deserialize YAML data into Rust types
-//! - Support for custom structs and enums using Serde's derive macros
+//! - Serialization and deserialization of Rust data structures to/from YAML format.
+//! - Support for custom structs and enums using Serde's derive macros.
 //! - Handling of YAML's `!tag` syntax for representing enum variants
-//! - Direct access to YAML values through the `Value` type and related types
+//! - Direct access to YAML values through the `Value` type and related types like `Mapping` and `Sequence`.
 //! - Comprehensive error handling with `Error`, `Location`, and `Result` types
-//! - Well-documented with examples and explanations
+//! - Serialization to YAML using `to_string` and `to_writer` functions.
+//! - Deserialization from YAML using `from_str`, `from_slice`, and `from_reader` functions.
+//! - Customizable serialization and deserialization behaviour using Serde's `#[serde(with = ...)]` attribute.
+//! - Support for serializing/deserializing enums using a YAML map with a single key-value pair through the `singleton_map` module.
+//! - Recursive application of `singleton_map` serialization/deserialization to all enums within a data structure using the `singleton_map_recursive` module.
+//! - Well-documented with examples and usage guidelines.
 //!
-//! Rust library for using the [Serde][01] serialization framework with data in
-//! [Yaml][02] file format.
+//! ### Rust Version Compatibility
 //!
-//! ## Rust Version Compatibility
+//! This library is compatible with Rust 1.60 and above.
 //!
-//! This library is compatible with Rust 1.51.0 and above.
+//! ## Usage
+//!
+//! Serde YML offers a straightforward and intuitive API for working with YAML data in Rust. Here's a quick example of how to serialize and deserialize a Rust type:
+//!
+//! ```shell
+//! use serde::{Serialize, Deserialize};
+//!
+//! #[derive(Serialize, Deserialize)]
+//! struct Point {
+//!     x: f64,
+//!     y: f64,
+//! }
+//!
+//! fn main() -> Result<(), serde_yml::Error> {
+//!     let point = Point { x: 1.0, y: 2.0 };
+//!
+//!     // Serialize to YAML
+//!     let yaml = serde_yml::to_string(&point)?;
+//!     assert_eq!(yaml, "x: 1.0\ny: 2.0\n");
+//!
+//!     // Deserialize from YAML
+//!     let deserialized_point: Point = serde_yml::from_str(&yaml)?;
+//!     assert_eq!(point, deserialized_point);
+//!
+//!     Ok(())
+//! }
+//! ```
 //!
 //! ## Examples
 //!
@@ -176,6 +213,8 @@
 //! [01]: https://github.com/serde-rs/serde
 //! [02]: https://yaml.org/
 //! [03]: https://www.rust-lang.org/ "Rust"
+//! [04]: https://github.com/dtolnay "David Tolnay"
+//! [05]: https://github.com/dtolnay/serde-yaml "Serde YAML"
 //!
 #![deny(missing_docs)]
 #![doc(

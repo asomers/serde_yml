@@ -62,7 +62,7 @@
 ///     value: 1
 /// ```
 ///
-/// Without `singleton_map`, the default behavior would have been to serialize
+/// Without `singleton_map`, the default behaviour would have been to serialize
 /// as:
 ///
 /// ```yaml

@@ -6,14 +6,17 @@ alt="Serde YML logo" width="261" align="right" />
 <!-- markdownlint-enable MD033 MD041 -->
 # Serde YML: Seamless YAML Serialization for Rust
 
-Serde YML is a Rust library that simplifies YAML serialization and deserialization using Serde. Effortlessly convert Rust types to YAML and vice versa. Supports custom structs, enums, and error handling.
+[`Serde YML`][00] is a Rust library that simplifies YAML serialization and deserialization using the popular [Serde][01] framework. It provides a convenient and efficient way to convert Rust data structures to YAML format and vice versa.
 
-## Credits
+## Credits and Acknowledgements
 
-- This library is a fork of the excellent [Serde YAML][17] library by [David Tolnay][16].
-- David deserves the lion's share of the credit behind the work he has done on his library.
-- The intent of this repository is purely to keep an active version of his library and continue my learning into Rust.
-- For those migrating from the orginal version of [Serde YAML][17], please be aware that this Library is not intending to replace at all the original one.
+This new library draws inspiration from the excellent work done by [David Tolnay][16] and the maintainers of the [serde-yaml][17] library. While Serde YML started as a fork of serde-yaml, it has now evolved into a separate library with its own goals and direction in mind.
+
+If you are currently using serde-yaml in your projects, we recommend carefully evaluating your requirements and considering the stability and maturity of the original library before migrating to Serde YML.
+
+Finally, I would like to express my sincere gratitude to [David Tolnay][16] and the [serde-yaml][17] team for their valuable contributions to the Rust community and for inspiring this project.
+
+![divider][divider]
 
 <!-- markdownlint-disable MD033 MD041 -->
 <center>
@@ -23,7 +26,7 @@ Serde YML is a Rust library that simplifies YAML serialization and deserializati
 
 [![Made With Rust][made-with-rust-badge]][13] [![Crates.io][crates-badge]][08] [![Lib.rs][libs-badge]][10] [![Docs.rs][docs-badge]][09] [![License][license-badge]][03] [![Codecov][codecov-badge]][14]
 
-• [Website][01] • [Documentation][09] • [Report Bug][04] • [Request Feature][04] • [Contributing Guidelines][05]
+• [Website][00] • [Documentation][09] • [Report Bug][04] • [Request Feature][04] • [Contributing Guidelines][05]
 
 <!-- markdownlint-disable MD033 MD041 -->
 </center>
@@ -31,19 +34,23 @@ Serde YML is a Rust library that simplifies YAML serialization and deserializati
 
 <!-- markdownlint-enable MD033 -->
 
-## Overview
-
-`Serde YML` is a robust Rust library that simplifies the serialization and deserialization of Rust data structures to and from YAML format using the widely-used Serde framework. With Serde YML, you can effortlessly convert your Rust types into YAML strings and vice versa, streamlining the process of storing, transmitting, and manipulating structured data.providing style guides for your library.
-
 ## Features
 
-- Serialize Rust data structures to YAML format
-- Deserialize YAML data into Rust types
-- Support for custom structs and enums using Serde's derive macros
+- Serialization and deserialization of Rust data structures to/from YAML format.
+- Support for custom structs and enums using Serde's derive macros.
 - Handling of YAML's `!tag` syntax for representing enum variants
-- Direct access to YAML values through the `Value` type and related types
+- Direct access to YAML values through the `Value` type and related types like `Mapping` and `Sequence`.
 - Comprehensive error handling with `Error`, `Location`, and `Result` types
-- Well-documented with examples and explanations
+- Serialization to YAML using `to_string` and `to_writer` functions.
+- Deserialization from YAML using `from_str`, `from_slice`, and `from_reader` functions.
+- Customizable serialization and deserialization behaviour using Serde's `#[serde(with = ...)]` attribute.
+- Support for serializing/deserializing enums using a YAML map with a single key-value pair through the `singleton_map` module.
+- Recursive application of `singleton_map` serialization/deserialization to all enums within a data structure using the `singleton_map_recursive` module.
+- Well-documented with examples and usage guidelines.
+
+### Rust Version Compatibility
+
+This library is compatible with Rust 1.60 and above.
 
 ## Usage
 
@@ -317,7 +324,6 @@ fn main() -> Result<(), serde_yml::Error> {
 - When working with custom structs or enums, ensure that they implement the necessary Serde traits (`Serialize` and `Deserialize`) for proper serialization and deserialization.
 - If you encounter any issues or have questions, refer to the library's documentation and examples for guidance. If the problem persists, consider opening an issue on the library's GitHub repository.
 
-
 ## Installation
 
 To use Serde YML in your Rust project, add the following to your `Cargo.toml` file:
@@ -359,7 +365,8 @@ A big thank you to all the awesome contributors of [serde_yml][06] for their hel
 and support. A special thank you goes to [David Tolnay][16] and his work on
 [Serde YAML][17] for inspiring this project.
 
-[01]: https://serdeyml.com "Serde YML"
+[00]: https://serdeyml.com "Serde YML"
+[01]: https://github.com/serde-rs/serde "Serde"
 [02]: https://opensource.org/license/apache-2-0/ "Apache License, Version 2.0"
 [03]: http://opensource.org/licenses/MIT "MIT license"
 [04]: https://github.com/sebastienrousseau/serde_yml/issues "Issues"
@@ -369,14 +376,11 @@ and support. A special thank you goes to [David Tolnay][16] and his work on
 [08]: https://crates.io/crates/serde_yml "Serde YML on crates.io"
 [09]: https://docs.rs/serde_yml "Serde YML on docs.rs"
 [10]: https://lib.rs/crates/serde_yml "Serde YML on lib.rs"
-[11]: https://github.com/sebastienrousseau/serde_yml/actions "GitHub Actions"
 [12]: https://www.rust-lang.org/policies/code-of-conduct "Rust's Code of Conduct"
 [13]: https://www.rust-lang.org "The Rust Programming Language"
 [14]: https://codecov.io/gh/sebastienrousseau/serde_yml "Codecov"
-[15]: https://www.reddit.com/r/rust/ "Rust Reddit"
 [16]: https://github.com/dtolnay "David Tolnay"
 [17]: https://github.com/dtolnay/serde-yaml "Serde YAML"
-
 
 [banner]: https://kura.pro/serde_yml/images/titles/title-serde_yml.svg "Serde YML Banner"
 [codecov-badge]: https://img.shields.io/codecov/c/github/sebastienrousseau/serde_yml?style=for-the-badge&token=Q9KJ6XXL67 "Codecov Badge"
