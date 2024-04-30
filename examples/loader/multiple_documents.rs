@@ -34,7 +34,7 @@ pub(crate) fn main() {
                 // Perform assertions to verify that the loader is working as expected.
                 assert_eq!(document1.events.len(), 4);
                 assert!(document1.error.is_none());
-                assert_eq!(document1.aliases.len(), 0);
+                assert_eq!(document1.anchor_event_map.len(), 0);
             } else {
                 // If document loading fails, print an error message.
                 println!("Failed to load document 1");
@@ -51,7 +51,7 @@ pub(crate) fn main() {
                 // Perform assertions to verify that the loader is working as expected.
                 assert_eq!(document2.events.len(), 4);
                 assert!(document2.error.is_none());
-                assert_eq!(document2.aliases.len(), 0);
+                assert_eq!(document2.anchor_event_map.len(), 0);
             } else {
                 // If document loading fails, print an error message.
                 println!("Failed to load document 2");

@@ -28,8 +28,8 @@ pub(crate) fn main() {
                 // Assert that there are no errors in the document
                 assert!(document.error.is_none());
 
-                // Assert that there are no aliases in the document
-                assert_eq!(document.aliases.len(), 0);
+                // Assert that there are no anchor_event_map in the document
+                assert_eq!(document.anchor_event_map.len(), 0);
 
                 // Print a success message and present the results to the user
                 println!("\n✅ Document successfully loaded:");

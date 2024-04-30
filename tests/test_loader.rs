@@ -18,7 +18,7 @@ mod tests {
         let progress = Progress::Str(input);
         let loader = Loader::new(progress).unwrap();
         assert!(loader.parser.is_some());
-        assert_eq!(loader.document_count, 0);
+        assert_eq!(loader.parsed_document_count, 0);
     }
 
     #[test]
@@ -30,12 +30,12 @@ mod tests {
         let document1 = loader.next_document().unwrap();
         assert_eq!(document1.events.len(), 4);
         assert!(document1.error.is_none());
-        assert_eq!(document1.aliases.len(), 0);
+        assert_eq!(document1.anchor_event_map.len(), 0);
 
         let document2 = loader.next_document().unwrap();
         assert_eq!(document2.events.len(), 4);
         assert!(document2.error.is_none());
-        assert_eq!(document2.aliases.len(), 0);
+        assert_eq!(document2.anchor_event_map.len(), 0);
 
         assert!(loader.next_document().is_none());
     }
@@ -49,7 +49,7 @@ mod tests {
         let document = loader.next_document().unwrap();
         assert_eq!(document.events.len(), 0);
         assert!(document.error.is_some());
-        assert_eq!(document.aliases.len(), 0);
+        assert_eq!(document.anchor_event_map.len(), 0);
 
         let error = document.error.unwrap();
         assert!(matches!(*error, ErrorImpl::UnknownAnchor(_)));
@@ -64,7 +64,7 @@ mod tests {
         let document = loader.next_document().unwrap();
         assert_eq!(document.events.len(), 6);
         assert!(document.error.is_none());
-        assert_eq!(document.aliases.len(), 1);
+        assert_eq!(document.anchor_event_map.len(), 1);
 
         let (event, _) = &document.events[1];
         if let Event::Scalar(scalar) = event {

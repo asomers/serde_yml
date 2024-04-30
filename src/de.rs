@@ -653,7 +653,7 @@ impl<'de, 'document> DeserializerFromEvents<'de, 'document> {
         if *self.jumpcount > self.document.events.len() * 100 {
             return Err(error::new(ErrorImpl::RepetitionLimitExceeded));
         }
-        match self.document.aliases.get(pos) {
+        match self.document.anchor_event_map.get(pos) {
             Some(found) => {
                 *pos = *found;
                 Ok(DeserializerFromEvents {

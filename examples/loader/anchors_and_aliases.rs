@@ -11,7 +11,7 @@ use std::str;
 
 pub(crate) fn main() {
     // Print a message to indicate the file being executed.
-    println!("\n❯ Executing examples/loader/anchors_and_aliases.rs");
+    println!("\n❯ Executing examples/loader/anchors_and_anchor_event_map.rs");
 
     let input = "---\nkey: &anchor value\nalias: *anchor\n...";
     let progress = Progress::Str(input);
@@ -27,7 +27,7 @@ pub(crate) fn main() {
 
     // Perform assertions to verify that the loader is working as expected.
     assert!(document.error.is_none());
-    assert_eq!(document.aliases.len(), 1);
+    assert_eq!(document.anchor_event_map.len(), 1);
 
     let (event, _) = &document.events[1];
     if let Event::Scalar(scalar) = event {

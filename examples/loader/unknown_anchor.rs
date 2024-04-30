@@ -43,8 +43,8 @@ pub(crate) fn main() {
     // Assert that there is an error in the document
     assert!(document.error.is_some());
 
-    // Assert that there are no aliases in the document
-    assert_eq!(document.aliases.len(), 0);
+    // Assert that there are no anchor_event_map in the document
+    assert_eq!(document.anchor_event_map.len(), 0);
 
     // Retrieve the error from the document
     let error = document.error.unwrap();
