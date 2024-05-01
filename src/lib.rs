@@ -225,23 +225,27 @@
 #![crate_name = "serde_yml"]
 #![crate_type = "lib"]
 
-use crate::utilities::generator_uuid::generate_unique_string;
-use dtt::DateTime;
-use rlg::{log_format::LogFormat, log_level::LogLevel, macro_log};
-use std::{fs::File, io::Write};
+use dtt::DateTime; // Import the DateTime type from the dtt crate
+use std::{fs::File, io::Write}; // Import types for file operations
 
-pub use crate::de::{from_reader, from_slice, from_str, Deserializer};
-pub use crate::modules::error::{Error, Location, Result};
-pub use crate::ser::{to_string, to_writer, Serializer, State};
+// Define a constant for the log file path
+const LOG_FILE_PATH: &str = "./serde_yml.log";
+
+// Re-export commonly used items from other modules
+pub use crate::de::{from_reader, from_slice, from_str, Deserializer}; // Deserialization functions
+pub use crate::modules::error::{Error, Location, Result}; // Error handling types
+pub use crate::ser::{to_string, to_writer, Serializer, State}; // Serialization functions
 #[doc(inline)]
 pub use crate::value::{
     from_value, to_value, Index, Number, Sequence, Value,
-};
+}; // Value manipulation functions
 
 /// The `generators` module contains functions for generating data.
 pub mod generators;
+
 /// The `macros` module contains functions for generating macros.
 pub mod macros;
+
 /// The `models` module contains the data models for the library.
 pub mod models;
 
@@ -249,7 +253,7 @@ pub mod models;
 pub mod utilities;
 
 #[doc(inline)]
-pub use crate::mapping::Mapping;
+pub use crate::mapping::Mapping; // Re-export the Mapping type for YAML mappings
 
 /// The `de` module contains the library's YAML deserializer.
 pub mod de;
@@ -266,10 +270,15 @@ pub mod mapping;
 /// The `modules` module contains the library's modules.
 pub mod modules;
 
-mod number;
-mod ser;
+/// The `number` module contains the `Number` type for YAML numbers.
+pub mod number;
+
+/// The `ser` module contains the library's YAML serializer.
+pub mod ser;
+
 /// The `value` module contains the `Value` type for YAML values.
 pub mod value;
+
 /// The `with` module contains the `With` type for YAML values.
 pub mod with;
 
@@ -285,50 +294,46 @@ mod private {
 
 /// Run the Serde YML tool.
 pub fn run() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    // Get the current date and time
     let date = DateTime::new();
-    let iso = date.iso_8601;
+    let current_timestamp = date.iso_8601;
 
-    // Open the log file for appending
-    let mut log_file = File::create("./serde_yml.log")?;
+    // Open or create the log file
+    let mut log_file = create_log_file(LOG_FILE_PATH)?;
 
-    // Generate ASCII art for the tool's CLI
-    let log = macro_log!(
-        &generate_unique_string(),
-        &iso,
-        &LogLevel::INFO,
-        "deps",
-        "ASCII art generation event started.",
-        &LogFormat::CLF
-    );
-    // Write the log to both the console and the file
-    writeln!(log_file, "{}", log)?;
+    // Generate ASCII art for the tool's CLI and print it
+    let ascii_art = macro_ascii!("Serde YML");
+    println!("{}", ascii_art);
 
-    // Printing the ASCII art to the console
-    println!("{}", macro_ascii!("Serde YML"));
+    // Log the ASCII art generation event
+    log_event(
+        &mut log_file,
+        &current_timestamp,
+        &format!("ASCII art generated successfully:\n{}", ascii_art),
+    )?;
 
-    let log = macro_log!(
-        &generate_unique_string(),
-        &iso,
-        &LogLevel::INFO,
-        "deps",
-        "ASCII art generation event completed.",
-        &LogFormat::CLF
-    );
-    // Write the log to both the console and the file
-    writeln!(log_file, "{}", log)?;
+    // Print welcome message to the user
+    println!("Welcome to Serde YML! 👋");
+    println!("Serde YML is a Rust library that simplifies YAML serialization and deserialization using the popular Serde framework.");
 
-    // Check the number of arguments, provide a welcome message if no arguments were passed
-    macro_log!(
-        &generate_unique_string(),
-        &iso,
-        &LogLevel::INFO,
-        "cli",
-        "Welcome to Serde YML! 👋",
-        &LogFormat::CLF
-    );
-    eprintln!(
-        "Serde YML is a Rust library that simplifies YAML serialization and deserialization using the popular Serde framework."
-    );
+    Ok(())
+}
 
+/// Create a log file at the specified path.
+fn create_log_file(
+    file_path: &str,
+) -> std::result::Result<File, std::io::Error> {
+    let log_file = File::create(file_path)?;
+    Ok(log_file)
+}
+
+/// Log an event with a timestamp and message to the specified log file.
+fn log_event(
+    log_file: &mut File,
+    timestamp: &str,
+    message: &str,
+) -> std::result::Result<(), std::io::Error> {
+    writeln!(log_file, "[{}] {}", timestamp, message)?;
+    log_file.flush()?;
     Ok(())
 }

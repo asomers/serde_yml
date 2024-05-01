@@ -8,10 +8,8 @@ mod tests {
     use serde_yml::run;
 
     #[test]
-    fn test_run() {
-        if let Err(err) = run() {
-            eprintln!("Program encountered an error: {}", err);
-        }
-        assert_eq!(1, 1)
+    fn test_run_success() {
+        // Test that run() executes without panicking
+        assert!(run().is_ok());
     }
 }
