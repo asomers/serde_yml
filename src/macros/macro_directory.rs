@@ -127,12 +127,7 @@ macro_rules! macro_check_directory {
     ($_dir:expr, $_name:expr) => {{
         let directory: &std::path::Path = $_dir;
         let name = $_name;
-        if directory.exists() {
-            if !directory.is_dir() {
-                log::warn!("❌ '{}' is not a directory.", name);
-                panic!("❌ '{}' is not a directory.", name);
-            }
-        } else {
+        if !directory.exists() {
             match std::fs::create_dir_all(directory) {
                 Ok(_) => {}
                 Err(e) => {
