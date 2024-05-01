@@ -13,11 +13,12 @@
 
 use indoc::indoc;
 use serde_derive::Deserialize;
+use serde_yml::Value::String as SerdeString;
 use serde_yml::{Deserializer, Number, Value};
 use std::collections::BTreeMap;
 use std::fmt::Debug;
 use std::fmt::Formatter;
-use serde_yml::Value::String;
+use std::string::String;
 
 fn test_de<T>(yaml: &str, expected: &T)
 where
@@ -347,12 +348,12 @@ fn test_de_mapping() {
         substructure: serde_yml::Mapping::new(),
     };
     expected.substructure.insert(
-        String("a".to_owned()),
-        String("foo".to_owned()),
+        SerdeString("a".to_owned()),
+        SerdeString("foo".to_owned()),
     );
     expected.substructure.insert(
-        String("b".to_owned()),
-        String("bar".to_owned()),
+        SerdeString("b".to_owned()),
+        SerdeString("bar".to_owned()),
     );
 
     test_de(yaml, &expected);
