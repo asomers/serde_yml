@@ -18,9 +18,9 @@ use serde::de::{
     DeserializeSeed, Expected, IgnoredAny, Unexpected, Visitor,
 };
 use std::fmt::Debug;
-use std::{fmt, io, mem, num::ParseIntError, str, sync::Arc};
 use std::fmt::Formatter;
 use std::fmt::Result as FmtResult;
+use std::{fmt, io, mem, num::ParseIntError, str, sync::Arc};
 
 type Result<T, E = Error> = std::result::Result<T, E>;
 
