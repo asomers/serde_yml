@@ -189,7 +189,7 @@ mod tests {
         // Assert
         assert_eq!(
             String::from_utf8(buffer).unwrap(),
-            "3.14\n--- .inf\n--- -.inf\n--- .nan\n",
+            "3.141592653589793\n--- .inf\n--- -.inf\n--- .nan\n",
             "Serialized f64 values don't match expected output"
         );
     }
