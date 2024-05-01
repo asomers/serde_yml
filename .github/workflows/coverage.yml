@@ -47,7 +47,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: "--workspace --locked"
+          args: "--workspace"
 
       # Install grcov
       - uses: actions-rs/grcov@v0.1
