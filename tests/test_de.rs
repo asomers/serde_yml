@@ -17,6 +17,7 @@ use serde_yml::{Deserializer, Number, Value};
 use std::collections::BTreeMap;
 use std::fmt::Debug;
 use std::fmt::Formatter;
+use serde_yml::Value::String;
 
 fn test_de<T>(yaml: &str, expected: &T)
 where
@@ -346,12 +347,12 @@ fn test_de_mapping() {
         substructure: serde_yml::Mapping::new(),
     };
     expected.substructure.insert(
-        serde_yml::Value::String("a".to_owned()),
-        serde_yml::Value::String("foo".to_owned()),
+        String("a".to_owned()),
+        String("foo".to_owned()),
     );
     expected.substructure.insert(
-        serde_yml::Value::String("b".to_owned()),
-        serde_yml::Value::String("bar".to_owned()),
+        String("b".to_owned()),
+        String("bar".to_owned()),
     );
 
     test_de(yaml, &expected);
