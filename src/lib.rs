@@ -325,7 +325,9 @@ pub fn run() -> std::result::Result<(), Box<dyn std::error::Error>> {
         "Welcome to Serde YML! 👋",
         &LogFormat::CLF
     );
-    eprintln!("\n\nWelcome to Serde YML! 👋");
+    eprintln!(
+        "Serde YML is a Rust library that simplifies YAML serialization and deserialization using the popular Serde framework."
+    );
 
     Ok(())
 }
