@@ -5,9 +5,9 @@
 
 #[cfg(test)]
 mod tests {
+    use serde_yml::de::Event;
     use serde_yml::de::Progress;
     use serde_yml::loader::Loader;
-    use serde_yml::de::Event;
     use std::str;
 
     #[test]

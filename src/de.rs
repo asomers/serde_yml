@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT indicates dual licensing under Apache 2.0 or MIT licenses.
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
-use std::fmt::Debug;
 use crate::{
     libyml::{
         error::Mark,
@@ -18,6 +17,7 @@ use serde::de::{
     self, value::StrDeserializer, Deserialize, DeserializeOwned,
     DeserializeSeed, Expected, IgnoredAny, Unexpected, Visitor,
 };
+use std::fmt::Debug;
 use std::{fmt, io, mem, num::ParseIntError, str, sync::Arc};
 
 type Result<T, E = Error> = std::result::Result<T, E>;
@@ -107,11 +107,21 @@ impl Debug for Progress<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Progress::Str(s) => write!(f, "Progress::Str({:?})", s),
-            Progress::Slice(slice) => write!(f, "Progress::Slice({:?})", slice),
-            Progress::Read(_) => write!(f, "Progress::Read(Box<dyn io::Read>)"),
-            Progress::Iterable(loader) => write!(f, "Progress::Iterable({:?})", loader),
-            Progress::Document(doc) => write!(f, "Progress::Document({:?})", doc),
-            Progress::Fail(err) => write!(f, "Progress::Fail({:?})", err),
+            Progress::Slice(slice) => {
+                write!(f, "Progress::Slice({:?})", slice)
+            }
+            Progress::Read(_) => {
+                write!(f, "Progress::Read(Box<dyn io::Read>)")
+            }
+            Progress::Iterable(loader) => {
+                write!(f, "Progress::Iterable({:?})", loader)
+            }
+            Progress::Document(doc) => {
+                write!(f, "Progress::Document({:?})", doc)
+            }
+            Progress::Fail(err) => {
+                write!(f, "Progress::Fail({:?})", err)
+            }
         }
     }
 }
@@ -986,9 +996,7 @@ impl<'de, 'variant> de::EnumAccess<'de>
     }
 }
 
-impl<'de> de::VariantAccess<'de>
-    for DeserializerFromEvents<'de, '_>
-{
+impl<'de> de::VariantAccess<'de> for DeserializerFromEvents<'de, '_> {
     type Error = Error;
 
     fn unit_variant(mut self) -> Result<()> {
@@ -1031,9 +1039,7 @@ struct UnitVariantAccess<'de, 'document, 'variant> {
     de: &'variant mut DeserializerFromEvents<'de, 'document>,
 }
 
-impl<'de> de::EnumAccess<'de>
-    for UnitVariantAccess<'de, '_, '_>
-{
+impl<'de> de::EnumAccess<'de> for UnitVariantAccess<'de, '_, '_> {
     type Error = Error;
     type Variant = Self;
 
@@ -1048,9 +1054,7 @@ impl<'de> de::EnumAccess<'de>
     }
 }
 
-impl<'de> de::VariantAccess<'de>
-    for UnitVariantAccess<'de, '_, '_>
-{
+impl<'de> de::VariantAccess<'de> for UnitVariantAccess<'de, '_, '_> {
     type Error = Error;
 
     fn unit_variant(self) -> Result<()> {

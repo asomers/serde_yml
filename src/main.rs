@@ -44,9 +44,9 @@ fn main() {
     //         std::process::exit(1);
     //     }
     // } else {
-        match run() {
-            Ok(_) => println!("Program completed successfully."),
-            Err(e) => eprintln!("Program encountered an error: {}", e),
-        }
+    match run() {
+        Ok(_) => println!("Program completed successfully."),
+        Err(e) => eprintln!("Program encountered an error: {}", e),
+    }
     // }
 }

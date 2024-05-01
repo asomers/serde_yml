@@ -39,40 +39,47 @@ mod tests {
     }
 
     // Tests for Number::display method
-#[test]
-fn test_display() {
-    let number = Number::from(42);
-    assert_eq!(number.to_string(), "42");
+    #[test]
+    fn test_display() {
+        let number = Number::from(42);
+        assert_eq!(number.to_string(), "42");
 
-    let number = Number::from(-42);
-    assert_eq!(number.to_string(), "-42");
+        let number = Number::from(-42);
+        assert_eq!(number.to_string(), "-42");
 
-    let number = Number::from(f64::NAN);
-    assert_eq!(number.to_string(), ".nan");
+        let number = Number::from(f64::NAN);
+        assert_eq!(number.to_string(), ".nan");
 
-    let number = Number::from(f64::INFINITY);
-    assert_eq!(number.to_string(), ".inf");
+        let number = Number::from(f64::INFINITY);
+        assert_eq!(number.to_string(), ".inf");
 
-    let number = Number::from(-f64::INFINITY);
-    assert_eq!(number.to_string(), "-.inf");
+        let number = Number::from(-f64::INFINITY);
+        assert_eq!(number.to_string(), "-.inf");
 
-    let number = Number::from(std::f64::consts::PI);
-    assert!((number.to_string().parse::<f64>().unwrap() - std::f64::consts::PI).abs() < f64::EPSILON);
-}
+        let number = Number::from(std::f64::consts::PI);
+        assert!(
+            (number.to_string().parse::<f64>().unwrap()
+                - std::f64::consts::PI)
+                .abs()
+                < f64::EPSILON
+        );
+    }
 
-// Tests for Number::as_f64 method
-#[test]
-fn test_as_f64() {
-    let number = Number::from(42);
-    assert_eq!(number.as_f64().unwrap(), 42.0);
+    // Tests for Number::as_f64 method
+    #[test]
+    fn test_as_f64() {
+        let number = Number::from(42);
+        assert_eq!(number.as_f64().unwrap(), 42.0);
 
-    let number = Number::from(-42);
-    assert_eq!(number.as_f64().unwrap(), -42.0);
+        let number = Number::from(-42);
+        assert_eq!(number.as_f64().unwrap(), -42.0);
 
-    let number = Number::from(std::f64::consts::PI);
-    assert!((number.as_f64().unwrap() - std::f64::consts::PI).abs() < f64::EPSILON);
-}
-
+        let number = Number::from(std::f64::consts::PI);
+        assert!(
+            (number.as_f64().unwrap() - std::f64::consts::PI).abs()
+                < f64::EPSILON
+        );
+    }
 
     // Tests for Number::from_str method
     #[test]
@@ -246,17 +253,20 @@ fn test_as_f64() {
     fn test_ser_de() {
         let number = Number::from(42);
         let serialized = serde_yml::to_string(&number).unwrap();
-        let deserialized: Number = serde_yml::from_str(&serialized).unwrap();
+        let deserialized: Number =
+            serde_yml::from_str(&serialized).unwrap();
         assert_eq!(number, deserialized);
 
         let number = Number::from(-42);
         let serialized = serde_yml::to_string(&number).unwrap();
-        let deserialized: Number = serde_yml::from_str(&serialized).unwrap();
+        let deserialized: Number =
+            serde_yml::from_str(&serialized).unwrap();
         assert_eq!(number, deserialized);
 
         let number = Number::from(std::f64::consts::PI);
         let serialized = serde_yml::to_string(&number).unwrap();
-        let deserialized: Number = serde_yml::from_str(&serialized).unwrap();
+        let deserialized: Number =
+            serde_yml::from_str(&serialized).unwrap();
         assert_eq!(number, deserialized);
     }
 }

@@ -11,12 +11,7 @@ use crate::{
     },
     modules::error::{self, Error, ErrorImpl, Result},
 };
-use std::{
-    borrow::Cow,
-    collections::BTreeMap,
-    io::Read,
-    sync::Arc,
-};
+use std::{borrow::Cow, collections::BTreeMap, io::Read, sync::Arc};
 
 /// Represents a YAML loader.
 #[derive(Debug)]
@@ -99,7 +94,9 @@ impl<'input> Loader<'input> {
             Progress::Read(mut rdr) => {
                 let mut buffer = Vec::new();
                 if let Err(io_error) = rdr.read_to_end(&mut buffer) {
-                    return Err(error::new(ErrorImpl::IoError(io_error)));
+                    return Err(error::new(ErrorImpl::IoError(
+                        io_error,
+                    )));
                 }
                 Cow::Owned(buffer)
             }

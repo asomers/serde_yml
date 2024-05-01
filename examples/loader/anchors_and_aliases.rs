@@ -11,7 +11,9 @@ use std::str;
 
 pub(crate) fn main() {
     // Print a message to indicate the file being executed.
-    println!("\n❯ Executing examples/loader/anchors_and_anchor_event_map.rs");
+    println!(
+        "\n❯ Executing examples/loader/anchors_and_anchor_event_map.rs"
+    );
 
     let input = "---\nkey: &anchor value\nalias: *anchor\n...";
     let progress = Progress::Str(input);
@@ -20,7 +22,10 @@ pub(crate) fn main() {
     let document = loader.next_document().unwrap();
 
     // Print a success message and present the results to the user.
-    println!("\n✅ Successfully loaded document with {} events:", document.events.len());
+    println!(
+        "\n✅ Successfully loaded document with {} events:",
+        document.events.len()
+    );
     for (event, mark) in &document.events {
         println!("\tEvent: {:?}, Mark: {:?}", event, mark);
     }
@@ -48,4 +53,3 @@ pub(crate) fn main() {
     let (event, _) = &document.events[4];
     assert!(matches!(event, Event::Alias(0)));
 }
-

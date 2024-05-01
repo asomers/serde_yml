@@ -9,6 +9,8 @@ use crate::libyml::{
     tag::Tag,
     util::Owned,
 };
+#[allow(clippy::unsafe_removed_from_name)]
+use libyml as sys;
 use std::{
     borrow::Cow,
     fmt::{self, Debug},
@@ -16,8 +18,6 @@ use std::{
     ptr::{addr_of_mut, NonNull},
     slice,
 };
-#[allow(clippy::unsafe_removed_from_name)]
-use libyml as sys;
 
 /// Represents a YAML parser.
 ///
@@ -227,8 +227,15 @@ impl<'input> Parser<'input> {
             if sys::yaml_parser_initialize(parser).fail {
                 panic!("malloc error: {}", Error::parse_error(parser));
             }
-            sys::yaml_parser_set_encoding(parser, sys::YamlUtf8Encoding);
-            sys::yaml_parser_set_input_string(parser, input.as_ptr(), input.len() as u64);
+            sys::yaml_parser_set_encoding(
+                parser,
+                sys::YamlUtf8Encoding,
+            );
+            sys::yaml_parser_set_input_string(
+                parser,
+                input.as_ptr(),
+                input.len() as u64,
+            );
             addr_of_mut!((*owned.ptr).input).write(input);
             Owned::assume_init(owned)
         };
@@ -239,7 +246,9 @@ impl<'input> Parser<'input> {
     ///
     /// Returns a `Result` containing the parsed `Event` and its corresponding `Mark` on success,
     /// or an `Error` if parsing fails.
-    pub fn parse_next_event(&mut self) -> Result<(Event<'input>, Mark)> {
+    pub fn parse_next_event(
+        &mut self,
+    ) -> Result<(Event<'input>, Mark)> {
         let mut event = MaybeUninit::<sys::YamlEventT>::uninit();
         unsafe {
             let parser = addr_of_mut!((*self.pin.ptr).sys);
@@ -273,7 +282,10 @@ unsafe fn convert_event<'input>(
             unsafe { optional_anchor(sys.data.alias.anchor) }.unwrap(),
         ),
         sys::YamlScalarEvent => {
-            let value_slice = slice::from_raw_parts(sys.data.scalar.value, sys.data.scalar.length as usize);
+            let value_slice = slice::from_raw_parts(
+                sys.data.scalar.value,
+                sys.data.scalar.length as usize,
+            );
             let repr = optional_repr(sys, input);
 
             Event::Scalar(Scalar {
@@ -331,7 +343,10 @@ unsafe fn optional_tag(tag: *const u8) -> Option<Tag> {
     Some(Tag(Box::from(cstr.to_bytes())))
 }
 
-unsafe fn optional_repr<'input>(sys: &sys::YamlEventT, input: &'input Cow<'input, [u8]>) -> Option<&'input [u8]> {
+unsafe fn optional_repr<'input>(
+    sys: &sys::YamlEventT,
+    input: &'input Cow<'input, [u8]>,
+) -> Option<&'input [u8]> {
     let start = sys.start_mark.index as usize;
     let end = sys.end_mark.index as usize;
     Some(&input[start..end])

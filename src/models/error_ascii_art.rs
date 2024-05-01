@@ -7,7 +7,7 @@ use std::error::Error;
 use std::fmt;
 
 /// Error type for ASCII art generation failures.
-#[derive(Clone, Copy,Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum AsciiArtError {
     /// Represents a failure to load the FIGfont.
     FontLoadError,

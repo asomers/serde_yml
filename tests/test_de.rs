@@ -11,12 +11,12 @@
     clippy::uninlined_format_args
 )]
 
-use std::fmt::Formatter;
 use indoc::indoc;
 use serde_derive::Deserialize;
 use serde_yml::{Deserializer, Number, Value};
 use std::collections::BTreeMap;
 use std::fmt::Debug;
+use std::fmt::Formatter;
 
 fn test_de<T>(yaml: &str, expected: &T)
 where

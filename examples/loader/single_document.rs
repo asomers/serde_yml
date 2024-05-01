@@ -38,7 +38,9 @@ pub(crate) fn main() {
                 }
             } else {
                 // If no document was returned, print an error message
-                println!("Failed to load document: ❌ No document found");
+                println!(
+                    "Failed to load document: ❌ No document found"
+                );
             }
         }
         Err(e) => {

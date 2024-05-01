@@ -205,7 +205,10 @@ mod tests {
 
         let (event, _) = &document.events[2];
         if let Event::Scalar(scalar) = event {
-            assert_eq!(str::from_utf8(&scalar.value).unwrap(), "value with \"quotes\"");
+            assert_eq!(
+                str::from_utf8(&scalar.value).unwrap(),
+                "value with \"quotes\""
+            );
         } else {
             panic!("Expected Event::Scalar");
         }
@@ -236,6 +239,4 @@ mod tests {
             panic!("Expected Event::Scalar");
         }
     }
-
-
 }

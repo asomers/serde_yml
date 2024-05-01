@@ -403,7 +403,7 @@ pub enum MaybeTag<T> {
 ///
 pub fn check_for_tag<T>(value: &T) -> MaybeTag<String>
 where
-    T:?Sized + Display,
+    T: ?Sized + Display,
 {
     enum CheckForTag {
         Empty,

@@ -4,7 +4,9 @@
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
 // Import necessary modules from the serde_yml crate.
-use serde_yml::{de::Progress, loader::Loader, modules::error::ErrorImpl};
+use serde_yml::{
+    de::Progress, loader::Loader, modules::error::ErrorImpl,
+};
 
 /// Example demonstrating the usage of Serde YML's `Loader` for YAML deserialization.
 pub(crate) fn main() {

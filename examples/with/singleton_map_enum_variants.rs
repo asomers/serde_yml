@@ -17,7 +17,9 @@ use serde_yml::with::singleton_map;
 
 pub(crate) fn main() {
     // Print a message to indicate the file being executed.
-    println!("\n❯ Executing examples/with/singleton_map_enum_variants.rs");
+    println!(
+        "\n❯ Executing examples/with/singleton_map_enum_variants.rs"
+    );
 
     // Define an enum with multiple variants
     #[derive(Serialize, Deserialize, PartialEq, Debug)]
@@ -39,7 +41,9 @@ pub(crate) fn main() {
 
     let input = EnumStruct {
         field1: MultiVariantEnum::Unit,
-        field2: MultiVariantEnum::Struct { field: std::f64::consts::PI },
+        field2: MultiVariantEnum::Struct {
+            field: std::f64::consts::PI,
+        },
     };
 
     let yaml = serde_yml::to_string(&input).unwrap();

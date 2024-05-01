@@ -3,9 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT indicates dual licensing under Apache 2.0 or MIT licenses.
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
-use std::fmt::Debug;
-use ::libyml::api::ScalarEventData;
 use crate::libyml::{self, util::Owned};
+use ::libyml::api::ScalarEventData;
 use ::libyml::YamlEventT;
 use ::libyml::YamlScalarStyleT::YamlLiteralScalarStyle;
 use ::libyml::{
@@ -18,11 +17,12 @@ use ::libyml::{
     yaml_sequence_end_event_initialize,
     yaml_sequence_start_event_initialize,
     yaml_stream_end_event_initialize,
-    yaml_stream_start_event_initialize, YamlEmitterT, YamlUtf8Encoding, YamlAnyMappingStyle, YamlAnySequenceStyle,
-    YamlScalarStyleT,YamlSingleQuotedScalarStyle
+    yaml_stream_start_event_initialize, YamlAnyMappingStyle,
+    YamlAnySequenceStyle, YamlEmitterT, YamlScalarStyleT,
+    YamlSingleQuotedScalarStyle, YamlUtf8Encoding,
 };
+use std::fmt::Debug;
 #[allow(clippy::unsafe_removed_from_name)]
-
 use std::{
     ffi::c_void,
     io,
@@ -45,7 +45,6 @@ pub(crate) enum Error {
 pub(crate) struct Emitter<'a> {
     pin: Owned<EmitterPinned<'a>>,
 }
-
 
 /// Represents a pinned emitter for YAML serialization.
 ///
@@ -174,7 +173,10 @@ impl<'a> Emitter<'a> {
     }
 
     /// Emits a YAML event.
-    pub(crate) fn emit(&mut self, event: Event<'_>) -> Result<(), Error> {
+    pub(crate) fn emit(
+        &mut self,
+        event: Event<'_>,
+    ) -> Result<(), Error> {
         let mut sys_event = MaybeUninit::<YamlEventT>::uninit();
         let sys_event = sys_event.as_mut_ptr();
         unsafe {
@@ -209,18 +211,27 @@ impl<'a> Emitter<'a> {
                     )
                 }
                 Event::Scalar(mut scalar) => {
-                    let tag_ptr = scalar.tag.as_mut().map_or_else(ptr::null, |tag| {
-                        tag.push('\0');
-                        tag.as_ptr()
-                    });
+                    let tag_ptr = scalar.tag.as_mut().map_or_else(
+                        ptr::null,
+                        |tag| {
+                            tag.push('\0');
+                            tag.as_ptr()
+                        },
+                    );
                     let value_ptr = scalar.value.as_ptr();
                     let length = scalar.value.len() as i32;
                     let plain_implicit = tag_ptr.is_null();
                     let quoted_implicit = tag_ptr.is_null();
                     let style = match scalar.style {
-                        ScalarStyle::Any => YamlScalarStyleT::YamlAnyScalarStyle,
-                        ScalarStyle::Plain => YamlScalarStyleT::YamlPlainScalarStyle,
-                        ScalarStyle::SingleQuoted => YamlSingleQuotedScalarStyle,
+                        ScalarStyle::Any => {
+                            YamlScalarStyleT::YamlAnyScalarStyle
+                        }
+                        ScalarStyle::Plain => {
+                            YamlScalarStyleT::YamlPlainScalarStyle
+                        }
+                        ScalarStyle::SingleQuoted => {
+                            YamlSingleQuotedScalarStyle
+                        }
                         ScalarStyle::Literal => YamlLiteralScalarStyle,
                     };
                     let event_data = ScalarEventData {
@@ -236,28 +247,42 @@ impl<'a> Emitter<'a> {
                     yaml_scalar_event_initialize(sys_event, event_data)
                 }
                 Event::SequenceStart(mut sequence) => {
-                    let tag_ptr = sequence.tag.as_mut().map_or_else(ptr::null, |tag| {
-                        tag.push('\0');
-                        tag.as_ptr()
-                    });
+                    let tag_ptr = sequence.tag.as_mut().map_or_else(
+                        ptr::null,
+                        |tag| {
+                            tag.push('\0');
+                            tag.as_ptr()
+                        },
+                    );
                     let implicit = tag_ptr.is_null();
                     let style = YamlAnySequenceStyle;
                     yaml_sequence_start_event_initialize(
-                        sys_event, ptr::null(), tag_ptr, implicit, style,
+                        sys_event,
+                        ptr::null(),
+                        tag_ptr,
+                        implicit,
+                        style,
                     )
                 }
                 Event::SequenceEnd => {
                     yaml_sequence_end_event_initialize(sys_event)
                 }
                 Event::MappingStart(mut mapping) => {
-                    let tag_ptr = mapping.tag.as_mut().map_or_else(ptr::null, |tag| {
-                        tag.push('\0');
-                        tag.as_ptr()
-                    });
+                    let tag_ptr = mapping.tag.as_mut().map_or_else(
+                        ptr::null,
+                        |tag| {
+                            tag.push('\0');
+                            tag.as_ptr()
+                        },
+                    );
                     let implicit = tag_ptr.is_null();
                     let style = YamlAnyMappingStyle;
                     yaml_mapping_start_event_initialize(
-                        sys_event, ptr::null(), tag_ptr, implicit, style,
+                        sys_event,
+                        ptr::null(),
+                        tag_ptr,
+                        implicit,
+                        style,
                     )
                 }
                 Event::MappingEnd => {

@@ -5,7 +5,6 @@
 
 #![allow(clippy::zero_sized_map_values)]
 
-use std::fmt::Formatter;
 use indoc::indoc;
 use serde::de::Deserialize;
 #[cfg(not(miri))]
@@ -18,6 +17,7 @@ use std::collections::BTreeMap;
 #[cfg(not(miri))]
 use std::fmt;
 use std::fmt::Debug;
+use std::fmt::Formatter;
 
 fn test_error<'de, T>(yaml: &'de str, expected: &str)
 where

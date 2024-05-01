@@ -3,10 +3,10 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT indicates dual licensing under Apache 2.0 or MIT licenses.
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
+use crate::from_number;
 use crate::{Mapping, Value};
 use std::borrow::Cow;
 use std::iter::FromIterator;
-use crate::from_number;
 
 // Implement conversion from number types to `Value`.
 from_number! {
