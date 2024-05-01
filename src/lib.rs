@@ -232,7 +232,7 @@ use std::{fs::File, io::Write};
 
 pub use crate::de::{from_reader, from_slice, from_str, Deserializer};
 pub use crate::modules::error::{Error, Location, Result};
-pub use crate::ser::{to_string, to_writer, Serializer};
+pub use crate::ser::{to_string, to_writer, Serializer, State};
 #[doc(inline)]
 pub use crate::value::{
     from_value, to_value, Index, Number, Sequence, Value,
@@ -244,6 +244,7 @@ pub mod generators;
 pub mod macros;
 /// The `models` module contains the data models for the library.
 pub mod models;
+
 /// The `utilities` module contains utility functions for the library.
 pub mod utilities;
 

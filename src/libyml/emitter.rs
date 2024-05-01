@@ -42,7 +42,7 @@ pub(crate) enum Error {
 
 /// A YAML emitter.
 #[derive(Debug)]
-pub(crate) struct Emitter<'a> {
+pub struct Emitter<'a> {
     pin: Owned<EmitterPinned<'a>>,
 }
 
@@ -87,7 +87,7 @@ impl Debug for EmitterPinned<'_> {
 
 /// YAML event types.
 #[derive(Debug)]
-pub(crate) enum Event<'a> {
+pub enum Event<'a> {
     /// Start of a YAML stream.
     StreamStart,
     /// End of a YAML stream.
@@ -110,18 +110,18 @@ pub(crate) enum Event<'a> {
 
 /// Represents a scalar value in YAML.
 #[derive(Debug)]
-pub(crate) struct Scalar<'a> {
+pub struct Scalar<'a> {
     /// Optional tag for the scalar.
-    pub(crate) tag: Option<String>,
+    pub tag: Option<String>,
     /// Value of the scalar.
-    pub(crate) value: &'a str,
+    pub value: &'a str,
     /// Style of the scalar.
-    pub(crate) style: ScalarStyle,
+    pub style: ScalarStyle,
 }
 
 /// Styles for YAML scalars.
-#[derive(Debug)]
-pub(crate) enum ScalarStyle {
+#[derive(Clone, Copy, Debug)]
+pub enum ScalarStyle {
     /// Any scalar style.
     Any,
     /// Plain scalar style.
@@ -134,16 +134,16 @@ pub(crate) enum ScalarStyle {
 
 /// Represents a YAML sequence.
 #[derive(Debug)]
-pub(crate) struct Sequence {
+pub struct Sequence {
     /// Optional tag for the sequence.
-    pub(crate) tag: Option<String>,
+    pub tag: Option<String>,
 }
 
 /// Represents a YAML mapping.
 #[derive(Debug)]
-pub(crate) struct Mapping {
+pub struct Mapping {
     /// Optional tag for the mapping.
-    pub(crate) tag: Option<String>,
+    pub tag: Option<String>,
 }
 
 impl<'a> Emitter<'a> {
