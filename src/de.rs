@@ -19,6 +19,8 @@ use serde::de::{
 };
 use std::fmt::Debug;
 use std::{fmt, io, mem, num::ParseIntError, str, sync::Arc};
+use std::fmt::Formatter;
+use std::fmt::Result as FmtResult;
 
 type Result<T, E = Error> = std::result::Result<T, E>;
 
@@ -104,7 +106,7 @@ pub enum Progress<'de> {
 }
 
 impl Debug for Progress<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
             Progress::Str(s) => write!(f, "Progress::Str({:?})", s),
             Progress::Slice(slice) => {
@@ -781,7 +783,7 @@ impl<'de, 'document> DeserializerFromEvents<'de, 'document> {
             impl Expected for ExpectedSeq {
                 fn fmt(
                     &self,
-                    formatter: &mut fmt::Formatter<'_>,
+                    formatter: &mut Formatter<'_>,
                 ) -> fmt::Result {
                     if self.0 == 1 {
                         write!(formatter, "sequence of 1 element")
@@ -824,7 +826,7 @@ impl<'de, 'document> DeserializerFromEvents<'de, 'document> {
             impl Expected for ExpectedMap {
                 fn fmt(
                     &self,
-                    formatter: &mut fmt::Formatter<'_>,
+                    formatter: &mut Formatter<'_>,
                 ) -> fmt::Result {
                     if self.0 == 1 {
                         write!(formatter, "map containing 1 entry")
@@ -1489,7 +1491,7 @@ fn invalid_type(event: &Event<'_>, exp: &dyn Expected) -> Error {
 
         fn expecting(
             &self,
-            formatter: &mut fmt::Formatter<'_>,
+            formatter: &mut Formatter<'_>,
         ) -> fmt::Result {
             self.exp.fmt(formatter)
         }

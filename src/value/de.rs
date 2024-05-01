@@ -7,15 +7,17 @@ use crate::value::tagged::{self, TagStringVisitor};
 use crate::value::TaggedValue;
 use crate::{number, Error, Mapping, Sequence, Value};
 use serde::de::value::{BorrowedStrDeserializer, StrDeserializer};
+use serde::de::value::{SeqAccessDeserializer,MapAccessDeserializer};
 use serde::de::{
     self, Deserialize, DeserializeSeed, Deserializer, EnumAccess,
     Error as _, Expected, MapAccess, SeqAccess, Unexpected,
     VariantAccess, Visitor,
 };
 use serde::forward_to_deserialize_any;
-use std::fmt;
 use std::slice;
 use std::vec;
+use std::fmt::Formatter;
+use std::fmt::Result as FmtResult;
 
 impl<'de> Deserialize<'de> for Value {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -29,8 +31,8 @@ impl<'de> Deserialize<'de> for Value {
 
             fn expecting(
                 &self,
-                formatter: &mut fmt::Formatter<'_>,
-            ) -> fmt::Result {
+                formatter: &mut Formatter<'_>,
+            ) -> FmtResult {
                 formatter.write_str("any YAML value")
             }
 
@@ -105,7 +107,7 @@ impl<'de> Deserialize<'de> for Value {
                 A: SeqAccess<'de>,
             {
                 let de =
-                    serde::de::value::SeqAccessDeserializer::new(data);
+                    SeqAccessDeserializer::new(data);
                 let sequence = Sequence::deserialize(de)?;
                 Ok(Value::Sequence(sequence))
             }
@@ -115,7 +117,7 @@ impl<'de> Deserialize<'de> for Value {
                 A: MapAccess<'de>,
             {
                 let de =
-                    serde::de::value::MapAccessDeserializer::new(data);
+                    MapAccessDeserializer::new(data);
                 let mapping = Mapping::deserialize(de)?;
                 Ok(Value::Mapping(mapping))
             }
