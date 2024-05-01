@@ -1,12 +1,11 @@
 #[cfg(test)]
 mod tests {
-    use serde::ser::Serializer as _;
-    use serde::Serialize;
+    use serde::{ser::Serializer as _, Serialize};
     use serde_yml::{
         libyml::emitter::{Scalar, ScalarStyle},
         Serializer, State,
     };
-    use std::collections::BTreeMap;
+    use std::{collections::BTreeMap, fmt::Write};
 
     // Test cases for scalar serialization
     #[test]
@@ -182,7 +181,7 @@ mod tests {
         let mut serializer = Serializer::new(&mut buffer);
 
         // Act
-        serializer.serialize_f64(3.14).unwrap();
+        serializer.serialize_f64(std::f64::consts::PI).unwrap();
         serializer.serialize_f64(f64::INFINITY).unwrap();
         serializer.serialize_f64(f64::NEG_INFINITY).unwrap();
         serializer.serialize_f64(f64::NAN).unwrap();
@@ -410,10 +409,11 @@ mod tests {
         large_sequence.serialize(&mut serializer).unwrap();
 
         // Assert
-        let expected_output = large_sequence
-            .iter()
-            .map(|i| format!("- {}\n", i))
-            .collect::<String>();
+        let mut expected_output = String::new(); // Create an empty String
+        for i in &large_sequence {
+            // Append to the String directly
+            writeln!(&mut expected_output, "- {}", i).unwrap();
+        }
 
         assert_eq!(
             String::from_utf8(buffer).unwrap(),
