@@ -155,7 +155,7 @@ fn test_tagged() {
 
     let value = serde_yml::to_value(&Enum::Variant(0)).unwrap();
 
-    let deserialized: serde_yml::Value =
+    let deserialized: Value =
         serde_yml::from_value(value.clone()).unwrap();
     assert_eq!(value, deserialized);
 

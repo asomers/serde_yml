@@ -17,6 +17,9 @@ use serde::de::{
     self, value::StrDeserializer, Deserialize, DeserializeOwned,
     DeserializeSeed, Expected, IgnoredAny, Unexpected, Visitor,
 };
+use std::fmt::Debug;
+use std::fmt::Formatter;
+use std::fmt::Result as FmtResult;
 use std::{fmt, io, mem, num::ParseIntError, str, sync::Arc};
 
 type Result<T, E = Error> = std::result::Result<T, E>;
@@ -59,6 +62,7 @@ type Result<T, E = Error> = std::result::Result<T, E>;
 ///     Ok(())
 /// }
 /// ```
+#[derive(Debug)]
 pub struct Deserializer<'de> {
     progress: Progress<'de>,
 }
@@ -99,6 +103,29 @@ pub enum Progress<'de> {
     /// The `Arc<ErrorImpl>` represents a reference-counted pointer to the error implementation.
     /// It allows for sharing the error across multiple owners without duplication.
     Fail(Arc<ErrorImpl>),
+}
+
+impl Debug for Progress<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Progress::Str(s) => write!(f, "Progress::Str({:?})", s),
+            Progress::Slice(slice) => {
+                write!(f, "Progress::Slice({:?})", slice)
+            }
+            Progress::Read(_) => {
+                write!(f, "Progress::Read(Box<dyn io::Read>)")
+            }
+            Progress::Iterable(loader) => {
+                write!(f, "Progress::Iterable({:?})", loader)
+            }
+            Progress::Document(doc) => {
+                write!(f, "Progress::Document({:?})", doc)
+            }
+            Progress::Fail(err) => {
+                write!(f, "Progress::Fail({:?})", err)
+            }
+        }
+    }
 }
 
 impl<'de> Deserializer<'de> {
@@ -266,7 +293,7 @@ impl<'de> Deserializer<'de> {
     }
 }
 
-impl<'de> Iterator for Deserializer<'de> {
+impl Iterator for Deserializer<'_> {
     type Item = Self;
 
     fn next(&mut self) -> Option<Self> {
@@ -638,7 +665,7 @@ impl<'de, 'document> DeserializerFromEvents<'de, 'document> {
         if *self.jumpcount > self.document.events.len() * 100 {
             return Err(error::new(ErrorImpl::RepetitionLimitExceeded));
         }
-        match self.document.aliases.get(pos) {
+        match self.document.anchor_event_map.get(pos) {
             Some(found) => {
                 *pos = *found;
                 Ok(DeserializerFromEvents {
@@ -756,7 +783,7 @@ impl<'de, 'document> DeserializerFromEvents<'de, 'document> {
             impl Expected for ExpectedSeq {
                 fn fmt(
                     &self,
-                    formatter: &mut fmt::Formatter,
+                    formatter: &mut Formatter<'_>,
                 ) -> fmt::Result {
                     if self.0 == 1 {
                         write!(formatter, "sequence of 1 element")
@@ -799,7 +826,7 @@ impl<'de, 'document> DeserializerFromEvents<'de, 'document> {
             impl Expected for ExpectedMap {
                 fn fmt(
                     &self,
-                    formatter: &mut fmt::Formatter,
+                    formatter: &mut Formatter<'_>,
                 ) -> fmt::Result {
                     if self.0 == 1 {
                         write!(formatter, "map containing 1 entry")
@@ -842,9 +869,7 @@ struct SeqAccess<'de, 'document, 'seq> {
     len: usize,
 }
 
-impl<'de, 'document, 'seq> de::SeqAccess<'de>
-    for SeqAccess<'de, 'document, 'seq>
-{
+impl<'de> de::SeqAccess<'de> for SeqAccess<'de, '_, '_> {
     type Error = Error;
 
     fn next_element_seed<T>(
@@ -885,9 +910,7 @@ struct MapAccess<'de, 'document, 'map> {
     key: Option<&'document [u8]>,
 }
 
-impl<'de, 'document, 'map> de::MapAccess<'de>
-    for MapAccess<'de, 'document, 'map>
-{
+impl<'de> de::MapAccess<'de> for MapAccess<'de, '_, '_> {
     type Error = Error;
 
     fn next_key_seed<K>(&mut self, seed: K) -> Result<Option<K::Value>>
@@ -945,8 +968,8 @@ struct EnumAccess<'de, 'document, 'variant> {
     tag: &'document str,
 }
 
-impl<'de, 'document, 'variant> de::EnumAccess<'de>
-    for EnumAccess<'de, 'document, 'variant>
+impl<'de, 'variant> de::EnumAccess<'de>
+    for EnumAccess<'de, '_, 'variant>
 {
     type Error = Error;
     type Variant = DeserializerFromEvents<'de, 'variant>;
@@ -975,9 +998,7 @@ impl<'de, 'document, 'variant> de::EnumAccess<'de>
     }
 }
 
-impl<'de, 'document> de::VariantAccess<'de>
-    for DeserializerFromEvents<'de, 'document>
-{
+impl<'de> de::VariantAccess<'de> for DeserializerFromEvents<'de, '_> {
     type Error = Error;
 
     fn unit_variant(mut self) -> Result<()> {
@@ -1020,9 +1041,7 @@ struct UnitVariantAccess<'de, 'document, 'variant> {
     de: &'variant mut DeserializerFromEvents<'de, 'document>,
 }
 
-impl<'de, 'document, 'variant> de::EnumAccess<'de>
-    for UnitVariantAccess<'de, 'document, 'variant>
-{
+impl<'de> de::EnumAccess<'de> for UnitVariantAccess<'de, '_, '_> {
     type Error = Error;
     type Variant = Self;
 
@@ -1037,9 +1056,7 @@ impl<'de, 'document, 'variant> de::EnumAccess<'de>
     }
 }
 
-impl<'de, 'document, 'variant> de::VariantAccess<'de>
-    for UnitVariantAccess<'de, 'document, 'variant>
-{
+impl<'de> de::VariantAccess<'de> for UnitVariantAccess<'de, '_, '_> {
     type Error = Error;
 
     fn unit_variant(self) -> Result<()> {
@@ -1452,7 +1469,7 @@ where
 
 fn is_plain_or_tagged_literal_scalar(
     expected: &str,
-    scalar: &Scalar,
+    scalar: &Scalar<'_>,
     tagged_already: bool,
 ) -> bool {
     match (scalar.style, &scalar.tag, tagged_already) {
@@ -1462,19 +1479,19 @@ fn is_plain_or_tagged_literal_scalar(
     }
 }
 
-fn invalid_type(event: &Event, exp: &dyn Expected) -> Error {
+fn invalid_type(event: &Event<'_>, exp: &dyn Expected) -> Error {
     enum Void {}
 
     struct InvalidType<'a> {
         exp: &'a dyn Expected,
     }
 
-    impl<'de, 'a> Visitor<'de> for InvalidType<'a> {
+    impl Visitor<'_> for InvalidType<'_> {
         type Value = Void;
 
         fn expecting(
             &self,
-            formatter: &mut fmt::Formatter,
+            formatter: &mut Formatter<'_>,
         ) -> fmt::Result {
             self.exp.fmt(formatter)
         }
@@ -1513,8 +1530,8 @@ fn parse_tag(libyml_tag: &Option<Tag>) -> Option<&str> {
     }
 }
 
-impl<'de, 'document> de::Deserializer<'de>
-    for &mut DeserializerFromEvents<'de, 'document>
+impl<'de> de::Deserializer<'de>
+    for &mut DeserializerFromEvents<'de, '_>
 {
     type Error = Error;
     #[deny(clippy::never_loop)]

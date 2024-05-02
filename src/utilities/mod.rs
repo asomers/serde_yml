@@ -2,4 +2,4 @@
 pub mod directory;
 
 /// The `uuid` module contains functions related to generating UUIDs.
-pub mod uuid;
+pub mod generator_uuid;

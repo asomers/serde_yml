@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT indicates dual licensing under Apache 2.0 or MIT licenses.
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
-use crate::Value;
 use crate::partialeq_numeric;
+use crate::Value;
 
 impl PartialEq<str> for Value {
     /// Compare `str` with YAML value

@@ -4,7 +4,9 @@
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
 // Import necessary modules from the serde_yml crate.
-use serde_yml::{de::Progress, loader::Loader, modules::error::ErrorImpl};
+use serde_yml::{
+    de::Progress, loader::Loader, modules::error::ErrorImpl,
+};
 
 /// Example demonstrating the usage of Serde YML's `Loader` for YAML deserialization.
 pub(crate) fn main() {
@@ -43,8 +45,8 @@ pub(crate) fn main() {
     // Assert that there is an error in the document
     assert!(document.error.is_some());
 
-    // Assert that there are no aliases in the document
-    assert_eq!(document.aliases.len(), 0);
+    // Assert that there are no anchor_event_map in the document
+    assert_eq!(document.anchor_event_map.len(), 0);
 
     // Retrieve the error from the document
     let error = document.error.unwrap();

@@ -88,7 +88,7 @@ impl Mapping {
     /// Gets the given key's corresponding entry in the map for insertion and/or
     /// in-place manipulation.
     #[inline]
-    pub fn entry(&mut self, k: Value) -> Entry {
+    pub fn entry(&mut self, k: Value) -> Entry<'_> {
         match self.map.entry(k) {
             indexmap::map::Entry::Occupied(occupied) => {
                 Entry::Occupied(OccupiedEntry { occupied })
@@ -211,7 +211,7 @@ impl Mapping {
     /// Returns a double-ended iterator visiting all key-value pairs in order of
     /// insertion. Iterator element type is `(&'a Value, &'a Value)`.
     #[inline]
-    pub fn iter(&self) -> Iter {
+    pub fn iter(&self) -> Iter<'_> {
         Iter {
             iter: self.map.iter(),
         }
@@ -220,14 +220,14 @@ impl Mapping {
     /// Returns a double-ended iterator visiting all key-value pairs in order of
     /// insertion. Iterator element type is `(&'a Value, &'a mut ValuE)`.
     #[inline]
-    pub fn iter_mut(&mut self) -> IterMut {
+    pub fn iter_mut(&mut self) -> IterMut<'_> {
         IterMut {
             iter: self.map.iter_mut(),
         }
     }
 
     /// Return an iterator over the keys of the map.
-    pub fn keys(&self) -> Keys {
+    pub fn keys(&self) -> Keys<'_> {
         Keys {
             iter: self.map.keys(),
         }
@@ -241,14 +241,14 @@ impl Mapping {
     }
 
     /// Return an iterator over the values of the map.
-    pub fn values(&self) -> Values {
+    pub fn values(&self) -> Values<'_> {
         Values {
             iter: self.map.values(),
         }
     }
 
     /// Return an iterator over mutable references to the values of the map.
-    pub fn values_mut(&mut self) -> ValuesMut {
+    pub fn values_mut(&mut self) -> ValuesMut<'_> {
         ValuesMut {
             iter: self.map.values_mut(),
         }
@@ -301,7 +301,7 @@ pub trait Index: private::Sealed {
 
 struct HashLikeValue<'a>(&'a str);
 
-impl<'a> indexmap::Equivalent<Value> for HashLikeValue<'a> {
+impl indexmap::Equivalent<Value> for HashLikeValue<'_> {
     fn equivalent(&self, key: &Value) -> bool {
         match key {
             Value::String(string) => self.0 == string,
@@ -311,7 +311,7 @@ impl<'a> indexmap::Equivalent<Value> for HashLikeValue<'a> {
 }
 
 // NOTE: This impl must be consistent with Value's Hash impl.
-impl<'a> Hash for HashLikeValue<'a> {
+impl Hash for HashLikeValue<'_> {
     fn hash<H: Hasher>(&self, state: &mut H) {
         const STRING: Value = Value::String(String::new());
         mem::discriminant(&STRING).hash(state);
@@ -605,6 +605,7 @@ impl FromIterator<(Value, Value)> for Mapping {
 
 macro_rules! delegate_iterator {
     (($name:ident $($generics:tt)*) => $item:ty) => {
+        #[allow(single_use_lifetimes)]
         impl $($generics)* Iterator for $name $($generics)* {
             type Item = $item;
             #[inline]
@@ -617,6 +618,7 @@ macro_rules! delegate_iterator {
             }
         }
 
+        #[allow(single_use_lifetimes)]
         impl $($generics)* ExactSizeIterator for $name $($generics)* {
             #[inline]
             fn len(&self) -> usize {
@@ -627,6 +629,7 @@ macro_rules! delegate_iterator {
 }
 
 /// Iterator over `&serde_yml::Mapping`.
+#[derive(Debug)]
 pub struct Iter<'a> {
     iter: indexmap::map::Iter<'a, Value, Value>,
 }
@@ -645,6 +648,7 @@ impl<'a> IntoIterator for &'a Mapping {
 }
 
 /// Iterator over `&mut serde_yml::Mapping`.
+#[derive(Debug)]
 pub struct IterMut<'a> {
     iter: indexmap::map::IterMut<'a, Value, Value>,
 }
@@ -663,6 +667,7 @@ impl<'a> IntoIterator for &'a mut Mapping {
 }
 
 /// Iterator over `serde_yml::Mapping` by value.
+#[derive(Debug)]
 pub struct IntoIter {
     iter: indexmap::map::IntoIter<Value, Value>,
 }
@@ -681,6 +686,7 @@ impl IntoIterator for Mapping {
 }
 
 /// Iterator of the keys of a `&serde_yml::Mapping`.
+#[derive(Debug)]
 pub struct Keys<'a> {
     iter: indexmap::map::Keys<'a, Value, Value>,
 }
@@ -688,6 +694,7 @@ pub struct Keys<'a> {
 delegate_iterator!((Keys<'a>) => &'a Value);
 
 /// Iterator of the keys of a `serde_yml::Mapping`.
+#[derive(Debug)]
 pub struct IntoKeys {
     iter: indexmap::map::IntoKeys<Value, Value>,
 }
@@ -695,6 +702,7 @@ pub struct IntoKeys {
 delegate_iterator!((IntoKeys) => Value);
 
 /// Iterator of the values of a `&serde_yml::Mapping`.
+#[derive(Debug)]
 pub struct Values<'a> {
     iter: indexmap::map::Values<'a, Value, Value>,
 }
@@ -702,6 +710,7 @@ pub struct Values<'a> {
 delegate_iterator!((Values<'a>) => &'a Value);
 
 /// Iterator of the values of a `&mut serde_yml::Mapping`.
+#[derive(Debug)]
 pub struct ValuesMut<'a> {
     iter: indexmap::map::ValuesMut<'a, Value, Value>,
 }
@@ -709,6 +718,7 @@ pub struct ValuesMut<'a> {
 delegate_iterator!((ValuesMut<'a>) => &'a mut Value);
 
 /// Iterator of the values of a `serde_yml::Mapping`.
+#[derive(Debug)]
 pub struct IntoValues {
     iter: indexmap::map::IntoValues<Value, Value>,
 }
@@ -716,6 +726,7 @@ pub struct IntoValues {
 delegate_iterator!((IntoValues) => Value);
 
 /// Entry for an existing key-value pair or a vacant location to insert one.
+#[derive(Debug)]
 pub enum Entry<'a> {
     /// Existing slot with equivalent key.
     Occupied(OccupiedEntry<'a>),
@@ -725,12 +736,14 @@ pub enum Entry<'a> {
 
 /// A view into an occupied entry in a [`Mapping`]. It is part of the [`Entry`]
 /// enum.
+#[derive(Debug)]
 pub struct OccupiedEntry<'a> {
     occupied: indexmap::map::OccupiedEntry<'a, Value, Value>,
 }
 
 /// A view into a vacant entry in a [`Mapping`]. It is part of the [`Entry`]
 /// enum.
+#[derive(Debug)]
 pub struct VacantEntry<'a> {
     vacant: indexmap::map::VacantEntry<'a, Value, Value>,
 }
@@ -877,7 +890,7 @@ impl<'de> Deserialize<'de> for Mapping {
 
             fn expecting(
                 &self,
-                formatter: &mut fmt::Formatter,
+                formatter: &mut fmt::Formatter<'_>,
             ) -> fmt::Result {
                 formatter.write_str("a YAML mapping")
             }
@@ -926,8 +939,8 @@ struct DuplicateKeyError<'a> {
     entry: OccupiedEntry<'a>,
 }
 
-impl<'a> Display for DuplicateKeyError<'a> {
-    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+impl Display for DuplicateKeyError<'_> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str("duplicate entry ")?;
         match self.entry.key() {
             Value::Null => formatter.write_str("with null key"),

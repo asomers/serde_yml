@@ -37,7 +37,8 @@ pub(crate) fn main() {
     let yaml = serde_yml::to_string(&input).unwrap();
     println!("\n✅ Serialized YAML:\n{}", yaml);
 
-    let output: SingleVariantStruct = serde_yml::from_str(&yaml).unwrap();
+    let output: SingleVariantStruct =
+        serde_yml::from_str(&yaml).unwrap();
     println!("\n✅ Deserialized YAML:\n{:#?}", output);
     assert_eq!(input, output);
 }

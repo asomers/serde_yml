@@ -62,7 +62,7 @@
 ///     value: 1
 /// ```
 ///
-/// Without `singleton_map`, the default behavior would have been to serialize
+/// Without `singleton_map`, the default behaviour would have been to serialize
 /// as:
 ///
 /// ```yaml
@@ -124,8 +124,24 @@ pub mod singleton_map {
         })
     }
 
-    struct SingletonMap<D> {
-        delegate: D,
+    /// A wrapper struct that delegates serialization and deserialization to an underlying serializer or deserializer.
+    ///
+    /// This struct is used internally by the `singleton_map` module to wrap the serializer or deserializer
+    /// and provide the necessary functionality for serializing and deserializing enums using the singleton map representation.
+    ///
+    /// The `SingletonMap` struct contains a single field, `delegate`, which holds the underlying serializer or deserializer.
+    ///
+    /// # Type Parameters
+    ///
+    /// * `D` - The type of the underlying serializer or deserializer.
+    ///
+    /// # Fields
+    ///
+    /// * `delegate` - The underlying serializer or deserializer to which serialization and deserialization are delegated.
+    #[derive(Clone, Copy, Debug)]
+    pub struct SingletonMap<D> {
+        /// The underlying serializer or deserializer to which serialization and deserialization are delegated.
+        pub delegate: D,
     }
 
     impl<D> Serialize for SingletonMap<D>
@@ -408,8 +424,20 @@ pub mod singleton_map {
         }
     }
 
-    struct SerializeTupleVariantAsSingletonMap<M> {
+    /// A helper struct for serializing tuple variants as singleton maps.
+    ///
+    /// This struct is used internally by the `singleton_map` module to serialize tuple variants
+    /// as YAML maps with a single key-value pair, where the key is the variant name and the value
+    /// is a YAML sequence containing the tuple elements.
+    ///
+    /// # Type Parameters
+    ///
+    /// * `M` - The type of the underlying serializer map.
+    #[derive(Clone, Debug)]
+    pub struct SerializeTupleVariantAsSingletonMap<M> {
+        /// The underlying serializer map to which the tuple variant is serialized.
         map: M,
+        /// The YAML sequence that holds the tuple elements.
         sequence: Sequence,
     }
 
@@ -440,8 +468,20 @@ pub mod singleton_map {
         }
     }
 
-    struct SerializeStructVariantAsSingletonMap<M> {
+    /// A helper struct for serializing struct variants as singleton maps.
+    ///
+    /// This struct is used internally by the `singleton_map` module to serialize struct variants
+    /// as YAML maps with a single key-value pair, where the key is the variant name and the value
+    /// is a YAML mapping containing the struct fields.
+    ///
+    /// # Type Parameters
+    ///
+    /// * `M` - The type of the underlying serializer map.
+    #[derive(Clone, Debug)]
+    pub struct SerializeStructVariantAsSingletonMap<M> {
+        /// The underlying serializer map to which the struct variant is serialized.
         map: M,
+        /// The YAML mapping that holds the struct fields.
         mapping: Mapping,
     }
 
@@ -1036,6 +1076,206 @@ pub mod singleton_map {
                 self.visitor,
             )
         }
+    }
+}
+
+/// Serialize/deserialize an optional enum using a YAML map containing one entry in which
+/// the key identifies the variant name.
+///
+/// This module is similar to `singleton_map`, but it works with optional (`Option`) fields.
+/// If the field is `Some`, it will be serialized/deserialized using the `singleton_map` representation.
+/// If the field is `None`, it will be serialized/deserialized as `null`.
+///
+/// # Example
+///
+/// ```
+/// use serde::{Deserialize, Serialize};
+///
+/// #[derive(Serialize, Deserialize, PartialEq, Debug)]
+/// enum MyEnum {
+///     Variant1,
+///     Variant2(String),
+/// }
+///
+/// #[derive(Serialize, Deserialize, PartialEq, Debug)]
+/// struct Example {
+///     #[serde(with = "serde_yml::with::singleton_map_optional")]
+///     field: Option<MyEnum>,
+/// }
+///
+/// let example = Example {
+///     field: Some(MyEnum::Variant2("value".to_string())),
+/// };
+///
+/// let yaml = serde_yml::to_string(&example).unwrap();
+/// assert_eq!(yaml, "field:\n  Variant2: value\n");
+///
+/// let deserialized: Example = serde_yml::from_str(&yaml).unwrap();
+/// assert_eq!(example, deserialized);
+/// ```
+pub mod singleton_map_optional {
+
+    use super::singleton_map;
+    use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
+    /// Serializes an optional value using the `singleton_map` representation.
+    ///
+    /// If the value is `Some`, it will be serialized using the `singleton_map` representation.
+    /// If the value is `None`, it will be serialized as `null`.
+    ///
+    /// # Arguments
+    ///
+    /// * `value` - A reference to the optional value to be serialized.
+    /// * `serializer` - The serializer to use for serializing the value.
+    ///
+    /// # Returns
+    ///
+    /// A result containing the serialization output or an error if serialization fails.
+    pub fn serialize<T, S>(
+        value: &Option<T>,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error>
+    where
+        T: Serialize,
+        S: Serializer,
+    {
+        match value {
+            Some(v) => singleton_map::serialize(v, serializer),
+            None => serializer.serialize_none(),
+        }
+    }
+
+    /// Deserializes a value using the `singleton_map` representation.
+    ///
+    /// This function expects the input to be in the `singleton_map` representation.
+    /// If the input is a YAML map with a single key-value pair, the value will be deserialized
+    /// and wrapped in `Some`. If the input is `null`, it will be deserialized as `None`.
+    ///
+    /// # Arguments
+    ///
+    /// * `deserializer` - The deserializer to use for deserializing the value.
+    ///
+    /// # Returns
+    ///
+    /// A result containing the deserialized optional value or an error if deserialization fails.
+    pub fn deserialize<'de, T, D>(
+        deserializer: D,
+    ) -> Result<Option<T>, D::Error>
+    where
+        T: Deserialize<'de>,
+        D: Deserializer<'de>,
+    {
+        Deserialize::deserialize(singleton_map::SingletonMap {
+            delegate: deserializer,
+        })
+    }
+}
+
+/// Serialize/deserialize an enum using a YAML map containing one entry in which
+/// the key identifies the variant name, while allowing combination with other `serialize_with` attributes.
+///
+/// This module provides a way to use `singleton_map` in combination with other `serialize_with` attributes.
+/// It simply forwards the serialization and deserialization calls to the `singleton_map` module.
+///
+/// # Example
+///
+/// ```
+/// use serde::{Deserialize, Serialize};
+///
+/// #[derive(Serialize, Deserialize, PartialEq, Debug)]
+/// enum MyEnum {
+///     Variant1,
+///     Variant2(String),
+/// }
+///
+/// #[derive(Serialize, Deserialize, PartialEq, Debug)]
+/// struct Example {
+///     #[serde(with = "serde_yml::with::singleton_map_with")]
+///     field: MyEnum,
+/// }
+///
+/// // Assuming `some_other_module` is defined elsewhere
+/// mod some_other_module {
+///     use serde::{Deserialize, Deserializer, Serialize, Serializer};
+///
+///     pub fn serialize<T, S>(value: &T, serializer: S) -> Result<S::Ok, S::Error>
+///     where
+///         T: Serialize,
+///         S: Serializer,
+///     {
+///         // Custom serialization logic
+///         value.serialize(serializer)
+///     }
+///
+///     pub fn deserialize<'de, T, D>(deserializer: D) -> Result<T, D::Error>
+///     where
+///         T: Deserialize<'de>,
+///         D: Deserializer<'de>,
+///     {
+///         // Custom deserialization logic
+///         T::deserialize(deserializer)
+///     }
+/// }
+///
+/// let example = Example {
+///     field: MyEnum::Variant2("value".to_string()),
+/// };
+///
+/// let yaml = serde_yml::to_string(&example).unwrap();
+/// assert_eq!(yaml, "field:\n  Variant2: value\n");
+///
+/// let deserialized: Example = serde_yml::from_str(&yaml).unwrap();
+/// assert_eq!(example, deserialized);
+/// ```
+pub mod singleton_map_with {
+
+    use super::singleton_map;
+    use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
+    /// Serializes a value using the `singleton_map` representation.
+    ///
+    /// This function is a wrapper around `singleton_map::serialize` and allows using
+    /// `singleton_map` in combination with other `serialize_with` attributes.
+    ///
+    /// # Arguments
+    ///
+    /// * `value` - A reference to the value to be serialized.
+    /// * `serializer` - The serializer to use for serializing the value.
+    ///
+    /// # Returns
+    ///
+    /// A result containing the serialization output or an error if serialization fails.
+    pub fn serialize<T, S>(
+        value: &T,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error>
+    where
+        T: Serialize,
+        S: Serializer,
+    {
+        singleton_map::serialize(value, serializer)
+    }
+
+    /// Deserializes a value using the `singleton_map` representation.
+    ///
+    /// This function is a wrapper around `singleton_map::deserialize` and allows using
+    /// `singleton_map` in combination with other `serialize_with` attributes.
+    ///
+    /// # Arguments
+    ///
+    /// * `deserializer` - The deserializer to use for deserializing the value.
+    ///
+    /// # Returns
+    ///
+    /// A result containing the deserialized value or an error if deserialization fails.
+    pub fn deserialize<'de, T, D>(
+        deserializer: D,
+    ) -> Result<T, D::Error>
+    where
+        T: Deserialize<'de>,
+        D: Deserializer<'de>,
+    {
+        singleton_map::deserialize(deserializer)
     }
 }
 

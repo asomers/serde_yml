@@ -47,7 +47,7 @@ mod tests {
     fn test_from_cow_borrowed() {
         // Verify conversion from Cow<str> (borrowed) to Value
         // Given a borrowed Cow<str>,
-        let s: Cow<str> = Cow::Borrowed("lorem");
+        let s: Cow<'_, str> = Cow::Borrowed("lorem");
         // When converting it to Value,
         let x: Value = s.into();
         // Then it should be converted correctly.
@@ -58,7 +58,7 @@ mod tests {
     fn test_from_cow_owned() {
         // Verify conversion from Cow<str> (owned) to Value
         // Given an owned Cow<str>,
-        let s: Cow<str> = Cow::Owned("lorem".to_string());
+        let s: Cow<'_, str> = Cow::Owned("lorem".to_string());
         // When converting it to Value,
         let x: Value = s.into();
         // Then it should be converted correctly.

@@ -4,6 +4,25 @@
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
 use crate::libyml::{self, util::Owned};
+use ::libyml::api::ScalarEventData;
+use ::libyml::YamlEventT;
+use ::libyml::YamlScalarStyleT::YamlLiteralScalarStyle;
+use ::libyml::{
+    yaml_document_end_event_initialize,
+    yaml_document_start_event_initialize, yaml_emitter_delete,
+    yaml_emitter_emit, yaml_emitter_flush, yaml_emitter_initialize,
+    yaml_emitter_set_output, yaml_emitter_set_unicode,
+    yaml_emitter_set_width, yaml_mapping_end_event_initialize,
+    yaml_mapping_start_event_initialize, yaml_scalar_event_initialize,
+    yaml_sequence_end_event_initialize,
+    yaml_sequence_start_event_initialize,
+    yaml_stream_end_event_initialize,
+    yaml_stream_start_event_initialize, YamlAnyMappingStyle,
+    YamlAnySequenceStyle, YamlEmitterT, YamlScalarStyleT,
+    YamlSingleQuotedScalarStyle, YamlUtf8Encoding,
+};
+use std::fmt::Debug;
+#[allow(clippy::unsafe_removed_from_name)]
 use std::{
     ffi::c_void,
     io,
@@ -11,8 +30,6 @@ use std::{
     ptr::{self, addr_of_mut},
     slice,
 };
-#[allow(clippy::unsafe_removed_from_name)]
-use unsafe_libyaml as sys;
 
 /// Errors that can occur during YAML emission.
 #[derive(Debug)]
@@ -24,19 +41,53 @@ pub(crate) enum Error {
 }
 
 /// A YAML emitter.
-pub(crate) struct Emitter<'a> {
+#[derive(Debug)]
+pub struct Emitter<'a> {
     pin: Owned<EmitterPinned<'a>>,
 }
 
-struct EmitterPinned<'a> {
-    sys: sys::yaml_emitter_t,
+/// Represents a pinned emitter for YAML serialization.
+///
+/// The `EmitterPinned` struct contains the necessary state and resources
+/// for emitting YAML documents. It is pinned to a specific lifetime `'a`
+/// to ensure that the `write` field remains valid throughout the lifetime
+/// of the emitter.
+///
+/// # Fields
+///
+/// - `sys`: An instance of `YamlEmitterT` representing the underlying
+///   emitter system.
+/// - `write`: A boxed trait object implementing the `io::Write` trait,
+///   used for writing the emitted YAML data. It is pinned to the lifetime
+///   `'a` to ensure it remains valid for the duration of the emitter's
+///   lifetime.
+/// - `write_error`: An optional `io::Error` used to store any errors that
+///   occur during the writing process.
+///
+/// # Lifetime
+///
+/// The `EmitterPinned` struct is parameterized by a lifetime `'a`, which
+/// represents the lifetime of the `write` field. This ensures that the
+/// `write` field remains valid for the entire lifetime of the `EmitterPinned`
+/// instance.
+pub struct EmitterPinned<'a> {
+    sys: YamlEmitterT,
     write: Box<dyn io::Write + 'a>,
     write_error: Option<io::Error>,
 }
 
+impl Debug for EmitterPinned<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("EmitterPinned")
+            .field("sys", &self.sys)
+            .field("write_error", &self.write_error)
+            .finish()
+    }
+}
+
 /// YAML event types.
 #[derive(Debug)]
-pub(crate) enum Event<'a> {
+pub enum Event<'a> {
     /// Start of a YAML stream.
     StreamStart,
     /// End of a YAML stream.
@@ -59,7 +110,7 @@ pub(crate) enum Event<'a> {
 
 /// Represents a scalar value in YAML.
 #[derive(Debug)]
-pub(crate) struct Scalar<'a> {
+pub struct Scalar<'a> {
     /// Optional tag for the scalar.
     pub tag: Option<String>,
     /// Value of the scalar.
@@ -69,8 +120,8 @@ pub(crate) struct Scalar<'a> {
 }
 
 /// Styles for YAML scalars.
-#[derive(Debug)]
-pub(crate) enum ScalarStyle {
+#[derive(Clone, Copy, Debug)]
+pub enum ScalarStyle {
     /// Any scalar style.
     Any,
     /// Plain scalar style.
@@ -83,35 +134,35 @@ pub(crate) enum ScalarStyle {
 
 /// Represents a YAML sequence.
 #[derive(Debug)]
-pub(crate) struct Sequence {
+pub struct Sequence {
     /// Optional tag for the sequence.
     pub tag: Option<String>,
 }
 
 /// Represents a YAML mapping.
 #[derive(Debug)]
-pub(crate) struct Mapping {
+pub struct Mapping {
     /// Optional tag for the mapping.
     pub tag: Option<String>,
 }
 
 impl<'a> Emitter<'a> {
     /// Creates a new YAML emitter.
-    pub fn new(write: Box<dyn io::Write + 'a>) -> Emitter<'a> {
+    pub(crate) fn new(write: Box<dyn io::Write + 'a>) -> Emitter<'a> {
         let owned = Owned::<EmitterPinned<'a>>::new_uninit();
         let pin = unsafe {
             let emitter = addr_of_mut!((*owned.ptr).sys);
-            if sys::yaml_emitter_initialize(emitter).fail {
+            if yaml_emitter_initialize(emitter).fail {
                 panic!(
                     "malloc error: {}",
                     libyml::Error::emit_error(emitter)
                 );
             }
-            sys::yaml_emitter_set_unicode(emitter, true);
-            sys::yaml_emitter_set_width(emitter, -1);
+            yaml_emitter_set_unicode(emitter, true);
+            yaml_emitter_set_width(emitter, -1);
             addr_of_mut!((*owned.ptr).write).write(write);
             addr_of_mut!((*owned.ptr).write_error).write(None);
-            sys::yaml_emitter_set_output(
+            yaml_emitter_set_output(
                 emitter,
                 write_handler,
                 owned.ptr.cast(),
@@ -122,27 +173,30 @@ impl<'a> Emitter<'a> {
     }
 
     /// Emits a YAML event.
-    pub fn emit(&mut self, event: Event<'_>) -> Result<(), Error> {
-        let mut sys_event = MaybeUninit::<sys::yaml_event_t>::uninit();
+    pub(crate) fn emit(
+        &mut self,
+        event: Event<'_>,
+    ) -> Result<(), Error> {
+        let mut sys_event = MaybeUninit::<YamlEventT>::uninit();
         let sys_event = sys_event.as_mut_ptr();
         unsafe {
             let emitter = addr_of_mut!((*self.pin.ptr).sys);
             let initialize_status = match event {
                 Event::StreamStart => {
-                    sys::yaml_stream_start_event_initialize(
+                    yaml_stream_start_event_initialize(
                         sys_event,
-                        sys::YAML_UTF8_ENCODING,
+                        YamlUtf8Encoding,
                     )
                 }
                 Event::StreamEnd => {
-                    sys::yaml_stream_end_event_initialize(sys_event)
+                    yaml_stream_end_event_initialize(sys_event)
                 }
                 Event::DocumentStart => {
                     let version_directive = ptr::null_mut();
                     let tag_directives_start = ptr::null_mut();
                     let tag_directives_end = ptr::null_mut();
                     let implicit = true;
-                    sys::yaml_document_start_event_initialize(
+                    yaml_document_start_event_initialize(
                         sys_event,
                         version_directive,
                         tag_directives_start,
@@ -152,89 +206,95 @@ impl<'a> Emitter<'a> {
                 }
                 Event::DocumentEnd => {
                     let implicit = true;
-                    sys::yaml_document_end_event_initialize(
+                    yaml_document_end_event_initialize(
                         sys_event, implicit,
                     )
                 }
                 Event::Scalar(mut scalar) => {
-                    let anchor = ptr::null();
-                    let tag = scalar.tag.as_mut().map_or_else(
+                    let tag_ptr = scalar.tag.as_mut().map_or_else(
                         ptr::null,
                         |tag| {
                             tag.push('\0');
                             tag.as_ptr()
                         },
                     );
-                    let value = scalar.value.as_ptr();
+                    let value_ptr = scalar.value.as_ptr();
                     let length = scalar.value.len() as i32;
-                    let plain_implicit = tag.is_null();
-                    let quoted_implicit = tag.is_null();
+                    let plain_implicit = tag_ptr.is_null();
+                    let quoted_implicit = tag_ptr.is_null();
                     let style = match scalar.style {
-                        ScalarStyle::Any => sys::YAML_ANY_SCALAR_STYLE,
+                        ScalarStyle::Any => {
+                            YamlScalarStyleT::YamlAnyScalarStyle
+                        }
                         ScalarStyle::Plain => {
-                            sys::YAML_PLAIN_SCALAR_STYLE
+                            YamlScalarStyleT::YamlPlainScalarStyle
                         }
                         ScalarStyle::SingleQuoted => {
-                            sys::YAML_SINGLE_QUOTED_SCALAR_STYLE
+                            YamlSingleQuotedScalarStyle
                         }
-                        ScalarStyle::Literal => {
-                            sys::YAML_LITERAL_SCALAR_STYLE
-                        }
+                        ScalarStyle::Literal => YamlLiteralScalarStyle,
                     };
-                    sys::yaml_scalar_event_initialize(
-                        sys_event,
-                        anchor,
-                        tag,
-                        value,
+                    let event_data = ScalarEventData {
+                        anchor: ptr::null(),
+                        tag: tag_ptr,
+                        value: value_ptr,
                         length,
                         plain_implicit,
                         quoted_implicit,
                         style,
-                    )
+                        _marker: core::marker::PhantomData,
+                    };
+                    yaml_scalar_event_initialize(sys_event, event_data)
                 }
                 Event::SequenceStart(mut sequence) => {
-                    let anchor = ptr::null();
-                    let tag = sequence.tag.as_mut().map_or_else(
+                    let tag_ptr = sequence.tag.as_mut().map_or_else(
                         ptr::null,
                         |tag| {
                             tag.push('\0');
                             tag.as_ptr()
                         },
                     );
-                    let implicit = tag.is_null();
-                    let style = sys::YAML_ANY_SEQUENCE_STYLE;
-                    sys::yaml_sequence_start_event_initialize(
-                        sys_event, anchor, tag, implicit, style,
+                    let implicit = tag_ptr.is_null();
+                    let style = YamlAnySequenceStyle;
+                    yaml_sequence_start_event_initialize(
+                        sys_event,
+                        ptr::null(),
+                        tag_ptr,
+                        implicit,
+                        style,
                     )
                 }
                 Event::SequenceEnd => {
-                    sys::yaml_sequence_end_event_initialize(sys_event)
+                    yaml_sequence_end_event_initialize(sys_event)
                 }
                 Event::MappingStart(mut mapping) => {
-                    let anchor = ptr::null();
-                    let tag = mapping.tag.as_mut().map_or_else(
+                    let tag_ptr = mapping.tag.as_mut().map_or_else(
                         ptr::null,
                         |tag| {
                             tag.push('\0');
                             tag.as_ptr()
                         },
                     );
-                    let implicit = tag.is_null();
-                    let style = sys::YAML_ANY_MAPPING_STYLE;
-                    sys::yaml_mapping_start_event_initialize(
-                        sys_event, anchor, tag, implicit, style,
+                    let implicit = tag_ptr.is_null();
+                    let style = YamlAnyMappingStyle;
+                    yaml_mapping_start_event_initialize(
+                        sys_event,
+                        ptr::null(),
+                        tag_ptr,
+                        implicit,
+                        style,
                     )
                 }
                 Event::MappingEnd => {
-                    sys::yaml_mapping_end_event_initialize(sys_event)
+                    yaml_mapping_end_event_initialize(sys_event)
                 }
             };
             if initialize_status.fail {
-                return Err(Error::Libyaml(
-                    libyml::Error::emit_error(emitter),
-                ));
+                return Err(Error::Libyaml(libyml::Error::emit_error(
+                    emitter,
+                )));
             }
-            if sys::yaml_emitter_emit(emitter, sys_event).fail {
+            if yaml_emitter_emit(emitter, sys_event).fail {
                 return Err(self.error());
             }
         }
@@ -242,10 +302,10 @@ impl<'a> Emitter<'a> {
     }
 
     /// Flushes the YAML emitter.
-    pub fn flush(&mut self) -> Result<(), Error> {
+    pub(crate) fn flush(&mut self) -> Result<(), Error> {
         unsafe {
             let emitter = addr_of_mut!((*self.pin.ptr).sys);
-            if sys::yaml_emitter_flush(emitter).fail {
+            if yaml_emitter_flush(emitter).fail {
                 return Err(self.error());
             }
         }
@@ -254,7 +314,7 @@ impl<'a> Emitter<'a> {
 
     /// Retrieves the inner writer from the YAML emitter.
     #[allow(unused_mut)]
-    pub fn into_inner(mut self) -> Box<dyn io::Write + 'a> {
+    pub(crate) fn into_inner(mut self) -> Box<dyn io::Write + 'a> {
         let sink = Box::new(io::sink());
         unsafe { mem::replace(&mut (*self.pin.ptr).write, sink) }
     }
@@ -295,6 +355,6 @@ unsafe fn write_handler(
 impl Drop for EmitterPinned<'_> {
     /// Drops the YAML emitter, deallocating resources.
     fn drop(&mut self) {
-        unsafe { sys::yaml_emitter_delete(&mut self.sys) }
+        unsafe { yaml_emitter_delete(&mut self.sys) }
     }
 }

@@ -7,13 +7,15 @@ use crate::value::tagged::{self, TagStringVisitor};
 use crate::value::TaggedValue;
 use crate::{number, Error, Mapping, Sequence, Value};
 use serde::de::value::{BorrowedStrDeserializer, StrDeserializer};
+use serde::de::value::{MapAccessDeserializer, SeqAccessDeserializer};
 use serde::de::{
     self, Deserialize, DeserializeSeed, Deserializer, EnumAccess,
     Error as _, Expected, MapAccess, SeqAccess, Unexpected,
     VariantAccess, Visitor,
 };
 use serde::forward_to_deserialize_any;
-use std::fmt;
+use std::fmt::Formatter;
+use std::fmt::Result as FmtResult;
 use std::slice;
 use std::vec;
 
@@ -29,8 +31,8 @@ impl<'de> Deserialize<'de> for Value {
 
             fn expecting(
                 &self,
-                formatter: &mut fmt::Formatter<'_>,
-            ) -> fmt::Result {
+                formatter: &mut Formatter<'_>,
+            ) -> FmtResult {
                 formatter.write_str("any YAML value")
             }
 
@@ -104,8 +106,7 @@ impl<'de> Deserialize<'de> for Value {
             where
                 A: SeqAccess<'de>,
             {
-                let de =
-                    serde::de::value::SeqAccessDeserializer::new(data);
+                let de = SeqAccessDeserializer::new(data);
                 let sequence = Sequence::deserialize(de)?;
                 Ok(Value::Sequence(sequence))
             }
@@ -114,8 +115,7 @@ impl<'de> Deserialize<'de> for Value {
             where
                 A: MapAccess<'de>,
             {
-                let de =
-                    serde::de::value::MapAccessDeserializer::new(data);
+                let de = MapAccessDeserializer::new(data);
                 let mapping = Mapping::deserialize(de)?;
                 Ok(Value::Mapping(mapping))
             }
@@ -1142,7 +1142,9 @@ impl<'de> VariantAccess<'de> for VariantRefDeserializer<'de> {
 
     fn unit_variant(self) -> Result<(), Error> {
         match self.value {
-            Some(value) => <Value as Clone>::clone(value).unit_variant(),
+            Some(value) => {
+                <Value as Clone>::clone(value).unit_variant()
+            }
             None => Ok(()),
         }
     }
@@ -1152,7 +1154,8 @@ impl<'de> VariantAccess<'de> for VariantRefDeserializer<'de> {
         T: DeserializeSeed<'de>,
     {
         match self.value {
-            Some(value) => <Value as Clone>::clone(value).newtype_variant_seed(seed),
+            Some(value) => <Value as Clone>::clone(value)
+                .newtype_variant_seed(seed),
             None => Err(Error::invalid_type(
                 Unexpected::UnitVariant,
                 &"newtype variant",
@@ -1169,7 +1172,8 @@ impl<'de> VariantAccess<'de> for VariantRefDeserializer<'de> {
         V: Visitor<'de>,
     {
         match self.value {
-            Some(value) => <Value as Clone>::clone(value).tuple_variant(len, visitor),
+            Some(value) => <Value as Clone>::clone(value)
+                .tuple_variant(len, visitor),
             None => Err(Error::invalid_type(
                 Unexpected::UnitVariant,
                 &"tuple variant",
@@ -1186,7 +1190,8 @@ impl<'de> VariantAccess<'de> for VariantRefDeserializer<'de> {
         V: Visitor<'de>,
     {
         match self.value {
-            Some(value) => <Value as Clone>::clone(value).struct_variant(fields, visitor),
+            Some(value) => <Value as Clone>::clone(value)
+                .struct_variant(fields, visitor),
             None => Err(Error::invalid_type(
                 Unexpected::UnitVariant,
                 &"struct variant",

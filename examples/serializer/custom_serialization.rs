@@ -19,7 +19,10 @@ struct Point {
 }
 
 impl Serialize for Point {
-    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    fn serialize<S>(
+        &self,
+        serializer: S,
+    ) -> std::result::Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
@@ -29,11 +32,16 @@ impl Serialize for Point {
 
 pub(crate) fn main() -> Result<()> {
     // Print a message to indicate the file being executed.
-    println!("\n❯ Executing examples/serializer/custom_serialization.rs");
+    println!(
+        "\n❯ Executing examples/serializer/custom_serialization.rs"
+    );
 
     let point = Point { x: 3, y: 7 };
     let yaml = to_string(&point)?;
-    println!("\n✅ Point serialized with custom implementation:\n{}", yaml);
+    println!(
+        "\n✅ Point serialized with custom implementation:\n{}",
+        yaml
+    );
 
     Ok(())
 }

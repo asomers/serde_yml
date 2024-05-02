@@ -122,22 +122,12 @@
 ///
 /// Please note that the macro panics on failure. Consider using this macro in scenarios where panicking is an acceptable behaviour, such as during application startup or setup.
 ///
-/// # See Also
-///
-/// - [`macro_create_directories`] for creating multiple directories
-/// - [`macro_cleanup_directories`] for cleaning up directories
-///
 #[macro_export]
 macro_rules! macro_check_directory {
     ($_dir:expr, $_name:expr) => {{
         let directory: &std::path::Path = $_dir;
         let name = $_name;
-        if directory.exists() {
-            if !directory.is_dir() {
-                log::warn!("❌ '{}' is not a directory.", name);
-                panic!("❌ '{}' is not a directory.", name);
-            }
-        } else {
+        if !directory.exists() {
             match std::fs::create_dir_all(directory) {
                 Ok(_) => {}
                 Err(e) => {
@@ -181,11 +171,6 @@ macro_rules! macro_check_directory {
 /// The macro creates an array `directories` containing the provided directory paths and passes it as an argument to `cleanup_directory`. The `cleanup_directory` function is responsible for performing the cleanup operations.
 ///
 /// Please note that the macro uses the `?` operator for error propagation. It expects the `cleanup_directory` function to return a `Result` type. If an error occurs during the cleanup process, it will be propagated up the call stack, allowing the caller to handle it appropriately.
-///
-/// # See Also
-///
-/// - [`macro_check_directory`] for checking and creating a single directory
-/// - [`macro_create_directories`] for creating multiple directories
 ///
 #[macro_export]
 macro_rules! macro_cleanup_directories {

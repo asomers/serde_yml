@@ -9,6 +9,8 @@ use crate::libyml::{
     tag::Tag,
     util::Owned,
 };
+#[allow(clippy::unsafe_removed_from_name)]
+use libyml as sys;
 use std::{
     borrow::Cow,
     fmt::{self, Debug},
@@ -16,8 +18,6 @@ use std::{
     ptr::{addr_of_mut, NonNull},
     slice,
 };
-#[allow(clippy::unsafe_removed_from_name)]
-use unsafe_libyaml as sys;
 
 /// Represents a YAML parser.
 ///
@@ -27,6 +27,7 @@ use unsafe_libyaml as sys;
 ///
 /// The `'input` lifetime parameter indicates the lifetime of the input data being parsed.
 /// It ensures that the `Parser` does not outlive the input data.
+#[derive(Debug)]
 pub struct Parser<'input> {
     /// The pinned parser state.
     ///
@@ -42,12 +43,42 @@ pub struct Parser<'input> {
     pin: Owned<ParserPinned<'input>>,
 }
 
-struct ParserPinned<'input> {
-    /// The underlying `yaml_parser_t` struct from the `libyml` library.
+/// Represents a pinned parser for YAML deserialization.
+///
+/// The `ParserPinned` struct contains the necessary state and resources
+/// for parsing YAML documents. It is pinned to a specific lifetime `'input`
+/// to ensure that the borrowed input data remains valid throughout the
+/// lifetime of the parser.
+///
+/// # Fields
+///
+/// - `sys`: The underlying `YamlParserT` struct from the `libyml` library.
+///   This field represents the low-level YAML parser state used by the `libyml`
+///   library to parse YAML documents.
+///
+/// - `input`: The input data being parsed.
+///   The `Cow<'input, [u8]>` type represents borrowed or owned input data.
+///   It allows the `Parser` to efficiently handle both borrowed slices and
+///   owned vectors of bytes.
+///   The `'input` lifetime parameter indicates the lifetime of the borrowed
+///   input data, if any.
+///
+/// # Lifetime
+///
+/// The `ParserPinned` struct is parameterized by a lifetime `'input`, which
+/// represents the lifetime of the borrowed input data, if any. This ensures
+/// that the borrowed input data remains valid for the entire lifetime of the
+/// `ParserPinned` instance.
+///
+/// If the input data is owned (i.e., a `Vec<u8>`), the `'input` lifetime is
+/// not used, and the owned data is stored directly in the `input` field.
+#[derive(Debug)]
+pub struct ParserPinned<'input> {
+    /// The underlying `YamlParserT` struct from the `libyml` library.
     ///
     /// This field represents the low-level YAML parser state used by the `libyml`
     /// library to parse YAML documents.
-    sys: sys::yaml_parser_t,
+    sys: sys::YamlParserT,
 
     /// The input data being parsed.
     ///
@@ -196,8 +227,15 @@ impl<'input> Parser<'input> {
             if sys::yaml_parser_initialize(parser).fail {
                 panic!("malloc error: {}", Error::parse_error(parser));
             }
-            sys::yaml_parser_set_encoding(parser, sys::YAML_UTF8_ENCODING);
-            sys::yaml_parser_set_input_string(parser, input.as_ptr(), input.len() as u64);
+            sys::yaml_parser_set_encoding(
+                parser,
+                sys::YamlUtf8Encoding,
+            );
+            sys::yaml_parser_set_input_string(
+                parser,
+                input.as_ptr(),
+                input.len() as u64,
+            );
             addr_of_mut!((*owned.ptr).input).write(input);
             Owned::assume_init(owned)
         };
@@ -208,11 +246,13 @@ impl<'input> Parser<'input> {
     ///
     /// Returns a `Result` containing the parsed `Event` and its corresponding `Mark` on success,
     /// or an `Error` if parsing fails.
-    pub fn parse_next_event(&mut self) -> Result<(Event<'input>, Mark)> {
-        let mut event = MaybeUninit::<sys::yaml_event_t>::uninit();
+    pub fn parse_next_event(
+        &mut self,
+    ) -> Result<(Event<'input>, Mark)> {
+        let mut event = MaybeUninit::<sys::YamlEventT>::uninit();
         unsafe {
             let parser = addr_of_mut!((*self.pin.ptr).sys);
-            if (*parser).error != sys::YAML_NO_ERROR {
+            if (*parser).error != sys::YamlNoError {
                 return Err(Error::parse_error(parser));
             }
             let event = event.as_mut_ptr();
@@ -230,49 +270,40 @@ impl<'input> Parser<'input> {
 }
 
 unsafe fn convert_event<'input>(
-    sys: &sys::yaml_event_t,
-    input: &Cow<'input, [u8]>,
+    sys: &sys::YamlEventT,
+    input: &'input Cow<'input, [u8]>,
 ) -> Event<'input> {
     match sys.type_ {
-        sys::YAML_STREAM_START_EVENT => Event::StreamStart,
-        sys::YAML_STREAM_END_EVENT => Event::StreamEnd,
-        sys::YAML_DOCUMENT_START_EVENT => Event::DocumentStart,
-        sys::YAML_DOCUMENT_END_EVENT => Event::DocumentEnd,
-        sys::YAML_ALIAS_EVENT => Event::Alias(
+        sys::YamlStreamStartEvent => Event::StreamStart,
+        sys::YamlStreamEndEvent => Event::StreamEnd,
+        sys::YamlDocumentStartEvent => Event::DocumentStart,
+        sys::YamlDocumentEndEvent => Event::DocumentEnd,
+        sys::YamlAliasEvent => Event::Alias(
             unsafe { optional_anchor(sys.data.alias.anchor) }.unwrap(),
         ),
-        sys::YAML_SCALAR_EVENT => Event::Scalar(Scalar {
-            anchor: unsafe { optional_anchor(sys.data.scalar.anchor) },
-            tag: unsafe { optional_tag(sys.data.scalar.tag) },
-            value: Box::from(unsafe {
-                slice::from_raw_parts(
-                    sys.data.scalar.value,
-                    sys.data.scalar.length as usize,
-                )
-            }),
-            #[allow(clippy::wildcard_in_or_patterns)]
-            style: match unsafe { sys.data.scalar.style } {
-                sys::YAML_PLAIN_SCALAR_STYLE => ScalarStyle::Plain,
-                sys::YAML_SINGLE_QUOTED_SCALAR_STYLE => {
-                    ScalarStyle::SingleQuoted
-                }
-                sys::YAML_DOUBLE_QUOTED_SCALAR_STYLE => {
-                    ScalarStyle::DoubleQuoted
-                }
-                sys::YAML_LITERAL_SCALAR_STYLE => ScalarStyle::Literal,
-                sys::YAML_FOLDED_SCALAR_STYLE => ScalarStyle::Folded,
-                sys::YAML_ANY_SCALAR_STYLE | _ => unreachable!(),
-            },
-            repr: if let Cow::Borrowed(input) = input {
-                Some(
-                    &input[sys.start_mark.index as usize
-                        ..sys.end_mark.index as usize],
-                )
-            } else {
-                None
-            },
-        }),
-        sys::YAML_SEQUENCE_START_EVENT => {
+        sys::YamlScalarEvent => {
+            let value_slice = slice::from_raw_parts(
+                sys.data.scalar.value,
+                sys.data.scalar.length as usize,
+            );
+            let repr = optional_repr(sys, input);
+
+            Event::Scalar(Scalar {
+                anchor: optional_anchor(sys.data.scalar.anchor),
+                tag: optional_tag(sys.data.scalar.tag),
+                value: Box::from(value_slice),
+                style: match sys.data.scalar.style {
+                    sys::YamlScalarStyleT::YamlPlainScalarStyle => ScalarStyle::Plain,
+                    sys::YamlScalarStyleT::YamlSingleQuotedScalarStyle => ScalarStyle::SingleQuoted,
+                    sys::YamlScalarStyleT::YamlDoubleQuotedScalarStyle => ScalarStyle::DoubleQuoted,
+                    sys::YamlScalarStyleT::YamlLiteralScalarStyle => ScalarStyle::Literal,
+                    sys::YamlScalarStyleT::YamlFoldedScalarStyle => ScalarStyle::Folded,
+                    _ => unreachable!(),
+                },
+                repr,
+            })
+        }
+        sys::YamlSequenceStartEvent => {
             Event::SequenceStart(SequenceStart {
                 anchor: unsafe {
                     optional_anchor(sys.data.sequence_start.anchor)
@@ -282,8 +313,8 @@ unsafe fn convert_event<'input>(
                 },
             })
         }
-        sys::YAML_SEQUENCE_END_EVENT => Event::SequenceEnd,
-        sys::YAML_MAPPING_START_EVENT => {
+        sys::YamlSequenceEndEvent => Event::SequenceEnd,
+        sys::YamlMappingStartEvent => {
             Event::MappingStart(MappingStart {
                 anchor: unsafe {
                     optional_anchor(sys.data.mapping_start.anchor)
@@ -294,8 +325,8 @@ unsafe fn convert_event<'input>(
             })
         }
         #[allow(clippy::unnecessary_literal_unwrap)]
-        sys::YAML_MAPPING_END_EVENT => Event::MappingEnd,
-        sys::YAML_NO_EVENT => unreachable!(),
+        sys::YamlMappingEndEvent => Event::MappingEnd,
+        sys::YamlNoEvent => unreachable!(),
         _ => unreachable!(),
     }
 }
@@ -310,6 +341,15 @@ unsafe fn optional_tag(tag: *const u8) -> Option<Tag> {
     let ptr = NonNull::new(tag as *mut i8)?;
     let cstr = { CStr::from_ptr(ptr) };
     Some(Tag(Box::from(cstr.to_bytes())))
+}
+
+unsafe fn optional_repr<'input>(
+    sys: &sys::YamlEventT,
+    input: &'input Cow<'input, [u8]>,
+) -> Option<&'input [u8]> {
+    let start = sys.start_mark.index as usize;
+    let end = sys.end_mark.index as usize;
+    Some(&input[start..end])
 }
 
 impl Debug for Scalar<'_> {

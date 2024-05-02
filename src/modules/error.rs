@@ -25,7 +25,7 @@ pub struct Pos {
 }
 
 /// The input location where an error occurred.
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Location {
     /// The byte index of the error.
     index: usize,
@@ -116,7 +116,7 @@ pub enum ErrorImpl {
     Shared(Arc<ErrorImpl>),
 }
 
-impl fmt::Display for ErrorImpl {
+impl Display for ErrorImpl {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             ErrorImpl::Message(msg, _) => write!(f, "Error: {}", msg),
@@ -180,7 +180,11 @@ pub fn shared(shared: Arc<ErrorImpl>) -> Error {
 }
 
 /// Fixes the mark and path in an error.
-pub fn fix_mark(mut error: Error, mark: libyml::Mark, path: Path<'_>) -> Error {
+pub fn fix_mark(
+    mut error: Error,
+    mark: libyml::Mark,
+    path: Path<'_>,
+) -> Error {
     if let ErrorImpl::Message(_, none @ None) = error.0.as_mut() {
         *none = Some(Pos {
             mark,

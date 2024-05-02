@@ -11,9 +11,10 @@ use crate::{
     },
     modules::error::{self, Error, ErrorImpl, Result},
 };
-use std::{borrow::Cow, collections::BTreeMap, sync::Arc};
+use std::{borrow::Cow, collections::BTreeMap, io::Read, sync::Arc};
 
 /// Represents a YAML loader.
+#[derive(Debug)]
 pub struct Loader<'input> {
     /// The YAML parser used to parse the input.
     ///
@@ -27,7 +28,7 @@ pub struct Loader<'input> {
     /// The count of documents parsed by the loader.
     ///
     /// This field keeps track of the number of YAML documents encountered during parsing.
-    pub document_count: usize,
+    pub parsed_document_count: usize,
 }
 
 /// Represents a YAML document.
@@ -60,7 +61,7 @@ pub struct Document<'input> {
     /// In YAML, an alias is a reference to a previously defined anchor. When an alias is
     /// encountered during parsing, its id is used to look up the index of the corresponding
     /// event in the `events` vector.
-    pub aliases: BTreeMap<usize, usize>,
+    pub anchor_event_map: BTreeMap<usize, usize>,
 }
 
 impl<'input> Loader<'input> {
@@ -73,6 +74,19 @@ impl<'input> Loader<'input> {
     /// # Errors
     ///
     /// Returns an error if there is an issue reading the input.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use serde_yml::loader::Loader;
+    /// use serde_yml::de::Progress;
+    ///
+    /// let input = "---\nkey: value";
+    /// let progress = Progress::Str(input);
+    /// let loader_result = Loader::new(progress);
+    ///
+    /// assert!(loader_result.is_ok());
+    /// ```
     pub fn new(progress: Progress<'input>) -> Result<Self> {
         let input = match progress {
             Progress::Str(s) => Cow::Borrowed(s.as_bytes()),
@@ -80,7 +94,9 @@ impl<'input> Loader<'input> {
             Progress::Read(mut rdr) => {
                 let mut buffer = Vec::new();
                 if let Err(io_error) = rdr.read_to_end(&mut buffer) {
-                    return Err(error::new(ErrorImpl::IoError(io_error)));
+                    return Err(error::new(ErrorImpl::IoError(
+                        io_error,
+                    )));
                 }
                 Cow::Owned(buffer)
             }
@@ -92,7 +108,7 @@ impl<'input> Loader<'input> {
 
         Ok(Loader {
             parser: Some(Parser::new(input)),
-            document_count: 0,
+            parsed_document_count: 0,
         })
     }
 
@@ -101,20 +117,34 @@ impl<'input> Loader<'input> {
     /// # Returns
     ///
     /// Returns `Some(Document)` if a document is successfully parsed, or `None` if there are no more documents.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use serde_yml::loader::{Loader, Document};
+    /// use serde_yml::de::Progress;
+    ///
+    /// let input = "---\nkey: value";
+    /// let progress = Progress::Str(input);
+    /// let mut loader = Loader::new(progress).unwrap();
+    /// let document = loader.next_document().unwrap();
+    ///
+    /// assert_eq!(document.events.len(), 4);
+    /// ```
     pub fn next_document(&mut self) -> Option<Document<'input>> {
         let parser = match &mut self.parser {
             Some(parser) => parser,
             None => return None,
         };
 
-        let first = self.document_count == 0;
-        self.document_count += 1;
+        let first = self.parsed_document_count == 0;
+        self.parsed_document_count += 1;
 
         let mut anchors = BTreeMap::new();
         let mut document = Document {
             events: Vec::new(),
             error: None,
-            aliases: BTreeMap::new(),
+            anchor_event_map: BTreeMap::new(),
         };
 
         loop {
@@ -155,7 +185,7 @@ impl<'input> Loader<'input> {
                         let id = anchors.len();
                         anchors.insert(anchor, id);
                         document
-                            .aliases
+                            .anchor_event_map
                             .insert(id, document.events.len());
                     }
                     Event::Scalar(scalar)
@@ -165,7 +195,7 @@ impl<'input> Loader<'input> {
                         let id = anchors.len();
                         anchors.insert(anchor, id);
                         document
-                            .aliases
+                            .anchor_event_map
                             .insert(id, document.events.len());
                     }
                     Event::SequenceStart(sequence_start)
@@ -176,7 +206,7 @@ impl<'input> Loader<'input> {
                         let id = anchors.len();
                         anchors.insert(anchor, id);
                         document
-                            .aliases
+                            .anchor_event_map
                             .insert(id, document.events.len());
                     }
                     Event::MappingStart(mapping_start)

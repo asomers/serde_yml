@@ -23,7 +23,9 @@ struct User {
 
 pub(crate) fn main() -> Result<()> {
     // Print a message to indicate the file being executed.
-    println!("\n❯ Executing examples/serializer/optional_and_default.rs");
+    println!(
+        "\n❯ Executing examples/serializer/optional_and_default.rs"
+    );
 
     let user1 = User {
         name: "John".to_string(),
@@ -32,7 +34,10 @@ pub(crate) fn main() -> Result<()> {
     };
 
     let yaml = to_string(&user1)?;
-    println!("\n✅ User with optional fields serialized to YAML:\n{}", yaml);
+    println!(
+        "\n✅ User with optional fields serialized to YAML:\n{}",
+        yaml
+    );
 
     let user2 = User {
         name: "Jane".to_string(),
@@ -41,7 +46,10 @@ pub(crate) fn main() -> Result<()> {
     };
 
     let yaml = to_string(&user2)?;
-    println!("\n✅ User with default values serialized to YAML:\n{}", yaml);
+    println!(
+        "\n✅ User with default values serialized to YAML:\n{}",
+        yaml
+    );
 
     Ok(())
 }

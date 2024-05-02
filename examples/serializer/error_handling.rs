@@ -40,9 +40,7 @@ pub(crate) fn main() -> Result<()> {
         message: "Something went wrong".to_string(),
     };
 
-    let wrapper = ErrorWrapper {
-        error: Some(error),
-    };
+    let wrapper = ErrorWrapper { error: Some(error) };
 
     let yaml = to_string(&wrapper)?;
     println!("\n✅ Custom error type serialized to YAML:\n{}", yaml);

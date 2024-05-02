@@ -4,24 +4,25 @@
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
 use crate::libyml::cstr::CStr;
+#[allow(clippy::unsafe_removed_from_name)]
+use libyml as sys;
 use std::{
     fmt::{self, Debug, Display},
     mem::MaybeUninit,
     ptr::NonNull,
 };
-#[allow(clippy::unsafe_removed_from_name)]
-use unsafe_libyaml as sys;
 
 /// A type alias for a `Result` with an `Error` as the error type.
 pub type Result<T> = std::result::Result<T, Error>;
 
 /// Represents an error that occurred during YAML processing.
+#[derive(Clone, Copy)]
 pub struct Error {
     /// The kind of error that occurred.
     ///
-    /// This field uses the `yaml_error_type_t` type from the `unsafe_libyaml` crate,
+    /// This field uses the `yaml_error_type_t` type from the `libyml` crate,
     /// which represents different types of errors.
-    kind: sys::yaml_error_type_t,
+    kind: sys::YamlErrorTypeT,
 
     /// A null-terminated string describing the problem that caused the error.
     ///
@@ -48,25 +49,31 @@ pub struct Error {
 }
 
 impl Error {
-    /// Constructs an `Error` from a `yaml_parser_t` pointer.
+    /// Constructs an `Error` from a `YamlParserT` pointer.
     ///
     /// # Safety
     ///
     /// This function is unsafe because it dereferences raw pointers and assumes
-    /// the validity of the `yaml_parser_t` pointer.
-    pub unsafe fn parse_error(parser: *const sys::yaml_parser_t) -> Self {
+    /// the validity of the `YamlParserT` pointer.
+    pub unsafe fn parse_error(parser: *const sys::YamlParserT) -> Self {
         Error {
             kind: unsafe { (*parser).error },
-            problem: match NonNull::new(unsafe { (*parser).problem as *mut _ }) {
+            problem: match NonNull::new(unsafe {
+                (*parser).problem as *mut _
+            }) {
                 Some(problem) => CStr::from_ptr(problem),
-                None => CStr::from_bytes_with_nul(b"libyml parser failed but there is no error\0"),
+                None => CStr::from_bytes_with_nul(
+                    b"libyml parser failed but there is no error\0",
+                ),
             },
             problem_offset: unsafe { (*parser).problem_offset },
             problem_mark: Mark {
                 sys: unsafe { (*parser).problem_mark },
             },
             #[allow(clippy::manual_map)]
-            context: match NonNull::new(unsafe { (*parser).context as *mut _ }) {
+            context: match NonNull::new(unsafe {
+                (*parser).context as *mut _
+            }) {
                 Some(context) => Some(CStr::from_ptr(context)),
                 None => None,
             },
@@ -76,26 +83,38 @@ impl Error {
         }
     }
 
-    /// Constructs an `Error` from a `yaml_emitter_t` pointer.
+    /// Constructs an `Error` from a `YamlEmitterT` pointer.
     ///
     /// # Safety
     ///
     /// This function is unsafe because it dereferences raw pointers and assumes
-    /// the validity of the `yaml_emitter_t` pointer.
-    pub unsafe fn emit_error(emitter: *const sys::yaml_emitter_t) -> Self {
+    /// the validity of the `YamlEmitterT` pointer.
+    pub unsafe fn emit_error(
+        emitter: *const sys::YamlEmitterT,
+    ) -> Self {
         Error {
             kind: unsafe { (*emitter).error },
-            problem: match NonNull::new(unsafe { (*emitter).problem as *mut _ }) {
+            problem: match NonNull::new(unsafe {
+                (*emitter).problem as *mut _
+            }) {
                 Some(problem) => CStr::from_ptr(problem),
-                None => CStr::from_bytes_with_nul(b"libyml emitter failed but there is no error\0"),
+                None => CStr::from_bytes_with_nul(
+                    b"libyml emitter failed but there is no error\0",
+                ),
             },
             problem_offset: 0,
             problem_mark: Mark {
-                sys: unsafe { MaybeUninit::<sys::yaml_mark_t>::zeroed().assume_init() },
+                sys: unsafe {
+                    MaybeUninit::<sys::YamlMarkT>::zeroed()
+                        .assume_init()
+                },
             },
             context: None,
             context_mark: Mark {
-                sys: unsafe { MaybeUninit::<sys::yaml_mark_t>::zeroed().assume_init() },
+                sys: unsafe {
+                    MaybeUninit::<sys::YamlMarkT>::zeroed()
+                        .assume_init()
+                },
             },
         }
     }
@@ -136,13 +155,13 @@ impl Debug for Error {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut formatter = formatter.debug_struct("Error");
         if let Some(kind) = match self.kind {
-            sys::YAML_MEMORY_ERROR => Some("MEMORY"),
-            sys::YAML_READER_ERROR => Some("READER"),
-            sys::YAML_SCANNER_ERROR => Some("SCANNER"),
-            sys::YAML_PARSER_ERROR => Some("PARSER"),
-            sys::YAML_COMPOSER_ERROR => Some("COMPOSER"),
-            sys::YAML_WRITER_ERROR => Some("WRITER"),
-            sys::YAML_EMITTER_ERROR => Some("EMITTER"),
+            sys::YamlMemoryError => Some("MEMORY"),
+            sys::YamlReaderError => Some("READER"),
+            sys::YamlScannerError => Some("SCANNER"),
+            sys::YamlParserError => Some("PARSER"),
+            sys::YamlComposerError => Some("COMPOSER"),
+            sys::YamlWriterError => Some("WRITER"),
+            sys::YamlEmitterError => Some("EMITTER"),
             _ => None,
         } {
             formatter.field("kind", &format_args!("{}", kind));
@@ -175,7 +194,7 @@ pub struct Mark {
     ///
     /// This field is marked as `pub(super)`, which means it is accessible within the current module
     /// and its parent module, but not from outside the crate.
-    pub(super) sys: sys::yaml_mark_t,
+    pub(super) sys: sys::YamlMarkT,
 }
 
 impl Mark {
