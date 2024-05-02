@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT indicates dual licensing under Apache 2.0 or MIT licenses.
 // Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
 
+use std::io::Error as ioError;
 use std::{
     error::Error,
     fs::{self},
@@ -117,21 +118,18 @@ pub fn move_output_directory(
 ///     - `Ok(())` if the directories were cleaned up successfully.
 ///     - `Err(Box<dyn Error>)` if an error occurred during the cleanup process.
 ///
-pub fn cleanup_directory(
-    directories: &[&Path],
-) -> Result<(), Box<dyn Error>> {
-    for directory in directories {
-        if !directory.exists() {
-            continue;
+pub fn cleanup_directory(directories: &[&Path]) -> Result<(), ioError> {
+    for dir in directories {
+        if dir.exists() {
+            fs::remove_dir_all(dir)?;
+        } else {
+            // Log a warning if the directory does not exist.
+            log::warn!(
+                "Directory '{}' does not exist, skipping cleanup.",
+                dir.display()
+            );
         }
-
-        println!("\n❯ Cleaning up directories");
-
-        fs::remove_dir_all(directory)?;
-
-        println!("  Done.\n");
     }
-
     Ok(())
 }
 
