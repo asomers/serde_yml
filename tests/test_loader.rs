@@ -11,6 +11,7 @@ mod tests {
         modules::error::ErrorImpl,
     };
     use std::str;
+    use std::sync::Arc;
 
     #[test]
     fn test_loader_new() {
@@ -238,5 +239,49 @@ mod tests {
         } else {
             panic!("Expected Event::Scalar");
         }
+    }
+    #[test]
+    fn test_loader_new_from_slice() {
+        let input = "key: value".as_bytes();
+        let progress = Progress::Slice(input);
+        let loader = Loader::new(progress).unwrap();
+        assert!(loader.parser.is_some());
+        assert_eq!(loader.parsed_document_count, 0);
+    }
+
+    #[test]
+    fn test_loader_new_from_reader() {
+        use std::io::Cursor;
+
+        let input = Cursor::new("key: value".as_bytes());
+        let progress = Progress::Read(Box::new(input));
+        let loader = Loader::new(progress).unwrap();
+        assert!(loader.parser.is_some());
+        assert_eq!(loader.parsed_document_count, 0);
+    }
+
+    #[test]
+    fn test_loader_new_from_fail() {
+        let error = ErrorImpl::IoError(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            "test error",
+        ));
+        let progress = Progress::Fail(Arc::new(ErrorImpl::Shared(
+            Arc::new(error),
+        )));
+        let loader_result = Loader::new(progress);
+        assert!(loader_result.is_err());
+    }
+
+    #[test]
+    fn test_loader_next_document_empty_input() {
+        let input = "";
+        let progress = Progress::Str(input);
+        let mut loader = Loader::new(progress).unwrap();
+        let document = loader.next_document().unwrap();
+        assert_eq!(document.events.len(), 1);
+        assert!(document.error.is_none());
+        assert_eq!(document.anchor_event_map.len(), 0);
+        assert!(loader.next_document().is_none());
     }
 }
