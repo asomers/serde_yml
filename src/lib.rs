@@ -52,7 +52,7 @@
 //! ```rust
 //! use serde::{Serialize, Deserialize};
 //!
-//! #[derive(Serialize, Deserialize)]
+//! #[derive(Serialize, Deserialize,Debug,PartialEq)]
 //! struct Point {
 //!     x: f64,
 //!     y: f64,
@@ -63,7 +63,7 @@
 //!
 //!     // Serialize to YAML
 //!     let yaml = serde_yml::to_string(&point)?;
-//!     assert_eq!(yaml, "x: 1.0\ny: 2.0\n");
+//!     assert_eq!(yaml, "x: 1.0\n'y': 2.0\n");
 //!
 //!     // Deserialize from YAML
 //!     let deserialized_point: Point = serde_yml::from_str(&yaml)?;
