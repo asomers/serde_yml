@@ -36,27 +36,38 @@ Finally, I would like to express my sincere gratitude to [David Tolnay][16] and 
 
 ## Features
 
-- Serialization and deserialization of Rust data structures to/from YAML format.
-- Support for custom structs and enums using Serde's derive macros.
+- Serialization and deserialization of Rust data structures to/from YAML format
+- Support for custom structs and enums using Serde's derive macros
 - Handling of YAML's `!tag` syntax for representing enum variants
-- Direct access to YAML values through the `Value` type and related types like `Mapping` and `Sequence`.
+- Direct access to YAML values through the `Value` type and related types like `Mapping` and `Sequence`
 - Comprehensive error handling with `Error`, `Location`, and `Result` types
-- Serialization to YAML using `to_string` and `to_writer` functions.
-- Deserialization from YAML using `from_str`, `from_slice`, and `from_reader` functions.
-- Customizable serialization and deserialization behaviour using Serde's `#[serde(with = ...)]` attribute.
-- Support for serializing/deserializing enums using a YAML map with a single key-value pair through the `singleton_map` module.
-- Recursive application of `singleton_map` serialization/deserialization to all enums within a data structure using the `singleton_map_recursive` module.
-- Well-documented with examples and usage guidelines.
+- Serialization to YAML using `to_string` and `to_writer` functions
+- Deserialization from YAML using `from_str`, `from_slice`, and `from_reader` functions
+- Customizable serialization and deserialization behavior using Serde's `#[serde(with = ...)]` attribute
+- Support for serializing/deserializing enums using a YAML map with a single key-value pair through the `singleton_map` module
+- Recursive application of `singleton_map` serialization/deserialization to all enums within a data structure using the `singleton_map_recursive` module
+- Serialization and deserialization of optional enum fields using the `singleton_map_optional` module
+- Handling of nested enum structures with optional inner enums using the `singleton_map_recursive` module
+- Customization of serialization and deserialization logic for enums using the `singleton_map_with` module and custom helper functions
 
 ### Rust Version Compatibility
 
 This library is compatible with Rust 1.60 and above.
 
+## Installation
+
+Add the following dependency to your `Cargo.toml` file:
+
+```toml
+[dependencies]
+serde_yml = "0.0.5"
+```
+
 ## Usage
 
 Serde YML offers a straightforward and intuitive API for working with YAML data in Rust. Here's a quick example of how to serialize and deserialize a Rust type:
 
-```shell
+```rust
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize)]
@@ -82,18 +93,16 @@ fn main() -> Result<(), serde_yml::Error> {
 
 ## Examples
 
-To get started with Serde YML, you can use the examples provided in the `examples` directory of the project.
+Serde YML provides a set of comprehensive examples to demonstrate its usage and capabilities. You can find them in the `examples` directory of the project.
 
-Serde YML provides a set of comprehensive examples to demonstrate its usage and capabilities.
-
-To run the examples, clone the repository and run the following command in your
-terminal from the project root directory.
+To run the examples, clone the repository and execute the following command in your terminal from the project root directory:
 
 ```shell
 cargo run --example example
 ```
 
-The command will execute the example code, demonstrating various features and use cases of the Serde YML library. The examples cover various scenarios, including serializing and deserializing structs, enums, optional fields, custom structs, and more.
+The examples cover various scenarios, including serializing and deserializing structs, enums, optional fields, custom structs, and more.
+
 
 Here are a few notable examples:
 
@@ -123,6 +132,9 @@ fn main() -> Result<(), serde_yml::Error> {
     Ok(())
 }
 ```
+This example demonstrates how to serialize and deserialize a simple struct `Point` to and from YAML using the `serde_yml` crate.
+
+![divider][divider]
 
 ### Serializing and Deserializing Enums
 
@@ -155,6 +167,10 @@ fn main() -> Result<(), serde_yml::Error> {
     Ok(())
 }
 ```
+
+This example demonstrates how to serialize and deserialize an enum `Shape` (with struct variants) to and from YAML using the `serde_yml` crate.
+
+![divider][divider]
 
 ### Serializing and Deserializing Optional Fields
 
@@ -189,6 +205,10 @@ fn main() -> Result<(), serde_yml::Error> {
 }
 ```
 
+This example demonstrates how to serialize and deserialize a struct `User` with an optional field `age` to and from YAML using the `serde_yml` crate.
+
+![divider][divider]
+
 ### Serializing and Deserializing a HashMap
 
 ```rust
@@ -208,6 +228,10 @@ fn main() -> Result<(), serde_yml::Error> {
    Ok(())
 }
 ```
+
+This example demonstrates how to serialize and deserialize a `HashMap` to and from YAML using the `serde_yml` crate.
+
+![divider][divider]
 
 ### Serializing and Deserializing Custom Structs
 
@@ -237,6 +261,10 @@ fn main() -> Result<(), serde_yml::Error> {
   Ok(())
 }
 ```
+
+This example demonstrates how to serialize and deserialize a custom struct `Person` to and from YAML using the `serde_yml` crate.
+
+![divider][divider]
 
 ### Using Serde derive
 
@@ -316,6 +344,261 @@ fn main() -> Result<(), serde_yml::Error> {
     Ok(())
 }
 ```
+
+This example demonstrates how to use Serde's derive macros to automatically implement the `Serialize` and `Deserialize` traits for a struct `Point`, and then serialize and deserialize it to and from YAML using the `serde_yml` crate.
+
+![divider][divider]
+
+### Serializing and Deserializing Enums with Custom Serialization and Deserialization
+
+```rust
+use serde::{Deserialize, Serialize};
+use serde::de::{self, Deserializer, MapAccess, Visitor};
+use serde::ser::{SerializeMap, Serializer};
+use std::fmt;
+
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
+enum MyEnum {
+    Variant1(String),
+    Variant2 { field: i32 },
+}
+
+#[derive(PartialEq, Debug)]
+struct MyStruct {
+    field: MyEnum,
+}
+
+// Custom Serialize and Deserialize implementations for MyStruct
+// ...
+
+fn main() {
+    let input = MyStruct {
+        field: MyEnum::Variant2 { field: 42 },
+    };
+
+    let yaml = serde_yml::to_string(&input).unwrap();
+    println!("\n✅ Serialized YAML:\n{}", yaml);
+
+    let output: MyStruct = serde_yml::from_str(&yaml).unwrap();
+    println!("\n✅ Deserialized YAML:\n{:#?}", output);
+
+    assert_eq!(input, output);
+}
+```
+
+This example demonstrates how to use custom `Serialize` and `Deserialize` implementations for a struct containing an enum field, and how to leverage `serde_yml` to serialize and deserialize the struct to and from YAML.
+
+![divider][divider]
+
+### Serializing and Deserializing Optional Enums
+
+```rust
+use serde::{Deserialize, Serialize};
+use serde_yml::with::singleton_map_optional;
+
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
+enum OptionalEnum {
+    Variant1(String),
+    Variant2 { field: i32 },
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
+struct OptionalStruct {
+    #[serde(with = "singleton_map_optional")]
+    field: Option<OptionalEnum>,
+}
+
+// ...
+
+fn main() {
+    let input = OptionalStruct {
+        field: Some(OptionalEnum::Variant2 { field: 42 }),
+    };
+
+    let yaml = serde_yml::to_string(&input).unwrap();
+    println!("\n✅ Serialized YAML:\n{}", yaml);
+
+    let output: OptionalStruct = serde_yml::from_str(&yaml).unwrap();
+    println!("\n✅ Deserialized YAML:\n{:#?}", output);
+
+    assert_eq!(input, output);
+}
+```
+
+This example demonstrates how to use the `singleton_map_optional` attribute to serialize and deserialize an `Option<Enum>` field as a single YAML mapping entry with the key being the enum variant name.
+
+![divider][divider]
+
+### Serializing and Deserializing Nested Enums
+
+```rust
+use serde::{Deserialize, Serialize};
+use serde_yml::with::singleton_map_recursive;
+
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
+enum NestedEnum {
+    Variant1(String),
+    Variant2(Option<InnerEnum>),
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
+enum InnerEnum {
+    Inner1(i32),
+    Inner2(i32),
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
+struct NestedStruct {
+    #[serde(with = "singleton_map_recursive")]
+    field: NestedEnum,
+}
+
+// ...
+
+fn main() {
+    let input = NestedStruct {
+        field: NestedEnum::Variant2(Some(InnerEnum::Inner2(42))),
+    };
+
+    let yaml = serde_yml::to_string(&input).unwrap();
+    println!("\n✅ Serialized YAML:\n{}", yaml);
+
+    let output: NestedStruct = serde_yml::from_str(&yaml).unwrap();
+    println!("\n✅ Deserialized YAML:\n{:#?}", output);
+
+    assert_eq!(input, output);
+}
+```
+
+This example demonstrates how to use the `singleton_map_recursive` attribute to serialize and deserialize a nested enum structure where one of the enum variants contains an optional inner enum.
+
+![divider][divider]
+
+### Serializing and Deserializing Enums with `singleton_map_recursive`
+
+```rust
+use serde::{Deserialize, Serialize};
+use serde_yml::with::singleton_map_recursive;
+
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
+enum MyEnum {
+    Variant1(String),
+    Variant2 { field: i32 },
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
+struct MyStruct {
+    #[serde(with = "singleton_map_recursive")]
+    field: MyEnum,
+}
+
+// ...
+
+fn main() {
+    let input = MyStruct {
+        field: MyEnum::Variant2 { field: 42 },
+    };
+
+    let yaml = serde_yml::to_string(&input).unwrap();
+    println!("\n✅ Serialized YAML:\n{}", yaml);
+
+    let output: MyStruct = serde_yml::from_str(&yaml).unwrap();
+    println!("\n✅ Deserialized YAML:\n{:#?}", output);
+
+    assert_eq!(input, output);
+}
+```
+
+This example demonstrates how to use the `singleton_map_recursive` attribute to serialize and deserialize an enum field as a single YAML mapping entry with the key being the enum variant name.
+
+![divider][divider]
+
+### Serializing and Deserializing Enums with `singleton_map_with` and Custom Serialization
+
+```rust
+use serde::{Deserialize, Serialize};
+use serde_yml::with::singleton_map_with;
+
+fn custom_serialize<T, S>(
+    value: &T,
+    serializer: S,
+) -> Result<S::Ok, S::Error>
+where
+    T: Serialize,
+    S: serde::Serializer,
+{
+    // Custom serialization logic
+    singleton_map_with::serialize(value, serializer)
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
+enum MyEnum {
+    Variant1(String),
+    Variant2 { field: i32 },
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
+struct MyStruct {
+    #[serde(
+        serialize_with = "custom_serialize",
+        deserialize_with = "singleton_map_with::deserialize"
+    )]
+    field: MyEnum,
+}
+
+fn main() {
+    let input = MyStruct {
+        field: MyEnum::Variant2 { field: 42 },
+    };
+    let yaml = serde_yml::to_string(&input).unwrap();
+    println!("\n✅ Serialized YAML:\n{}", yaml);
+
+    let output: MyStruct = serde_yml::from_str(&yaml).unwrap();
+    println!("\n✅ Deserialized YAML:\n{:#?}", output);
+    assert_eq!(input, output);
+}
+```
+
+This example demonstrates how to use the `singleton_map_with` attribute in combination with a custom serialization function (`custom_serialize`) to serialize and deserialize an enum field (`MyEnum`) within a struct (`MyStruct`).
+
+The `custom_serialize` function is used for serialization, while the `singleton_map_with::deserialize` function is used for deserialization. This allows for additional customization of the serialization process while still leveraging the singleton_map_with attribute for deserialization.
+
+![divider][divider]
+
+### Serializing and Deserializing Enums with `singleton_map_with`
+
+```rust
+use serde::{Deserialize, Serialize};
+use serde_yml::with::singleton_map_with;
+
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
+enum MyEnum {
+    Variant1(String),
+    Variant2 { field: i32 },
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
+struct MyStruct {
+    #[serde(with = "singleton_map_with")]
+    field: MyEnum,
+}
+
+fn main() {
+    let input = MyStruct {
+        field: MyEnum::Variant2 { field: 42 },
+    };
+    let yaml = serde_yml::to_string(&input).unwrap();
+    println!("\n✅ Serialized YAML:\n{}", yaml);
+
+    let output: MyStruct = serde_yml::from_str(&yaml).unwrap();
+    println!("\n✅ Deserialized YAML:\n{:#?}", output);
+    assert_eq!(input, output);
+}
+```
+
+This example demonstrates how to use the `singleton_map_with` attribute to serialize and deserialize an enum field (`MyEnum`) within a struct (`MyStruct`). The `singleton_map_with` attribute allows for additional customization of the serialization and deserialization process through the use of helper functions.
+
+![divider][divider]
 
 ## Best Practices and Common Pitfalls
 
