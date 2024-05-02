@@ -354,7 +354,7 @@ mod tests {
         let yaml = "Unit\n";
         let deserialized: MyEnum =
             singleton_map_recursive::deserialize(
-                serde_yml::Deserializer::from_str(&yaml),
+                serde_yml::Deserializer::from_str(yaml),
             )
             .unwrap();
         assert_eq!(deserialized, MyEnum::Unit);
