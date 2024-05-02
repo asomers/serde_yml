@@ -10,9 +10,11 @@
 //! and deserialization logic to serialize and deserialize an enum field.
 //!
 
-use serde::de::{self, Deserializer, MapAccess, Visitor};
-use serde::ser::{SerializeMap, Serializer};
-use serde::{Deserialize, Serialize};
+use serde::{
+    de::{self, Deserializer, IgnoredAny, MapAccess, Visitor},
+    ser::{SerializeMap, Serializer},
+    Deserialize, Serialize,
+};
 use std::fmt;
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
@@ -66,7 +68,7 @@ impl<'de> Deserialize<'de> for MyStruct {
                     if key == "field" {
                         field = Some(map.next_value()?);
                     } else {
-                        map.next_value::<serde::de::IgnoredAny>()?;
+                        map.next_value::<IgnoredAny>()?;
                     }
                 }
 
