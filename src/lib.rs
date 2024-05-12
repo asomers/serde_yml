@@ -1,8 +1,3 @@
-// Copyright notice and licensing information.
-// These lines indicate the copyright of the software and its licensing terms.
-// SPDX-License-Identifier: Apache-2.0 OR MIT indicates dual licensing under Apache 2.0 or MIT licenses.
-// Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
-
 //! # Serde YML
 //!
 //! [![Serde YML Logo](https://kura.pro/serde_yml/images/banners/banner-serde_yml.svg)](https://serde_yml.one "Serde YML: Seamless YAML Serialization for Rust")
@@ -10,7 +5,7 @@
 //! ## Seamless YAML Serialization for [Rust][rust-lang]
 //!
 //! [![Crates.io](https://img.shields.io/crates/v/serde_yml.svg?style=for-the-badge&color=success&labelColor=27A006)][crates-io]
-//! [![Lib.rs](https://img.shields.io/badge/lib.rs-v0.0.5-success.svg?style=for-the-badge&color=8A48FF&labelColor=6F36E4)][lib-rs]
+//! [![Lib.rs](https://img.shields.io/badge/lib.rs-v0.0.6-success.svg?style=for-the-badge&color=8A48FF&labelColor=6F36E4)][lib-rs]
 //! [![License](https://img.shields.io/crates/l/serde_yml.svg?style=for-the-badge&color=007EC6&labelColor=03589B)][license]
 //! [![Rust](https://img.shields.io/badge/rust-f04041?style=for-the-badge&labelColor=c0282d&logo=rust)][rust-lang]
 //!
@@ -42,7 +37,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! serde_yml = "0.0.5"
+//! serde_yml = "0.0.6"
 //! ```
 //!
 //! ## Usage
