@@ -129,9 +129,6 @@ pub mod macros;
 /// The `models` module contains the data models for the library.
 pub mod models;
 
-/// The `utilities` module contains utility functions for the library.
-pub mod utilities;
-
 #[doc(inline)]
 pub use crate::mapping::Mapping; // Re-export the Mapping type for YAML mappings
 

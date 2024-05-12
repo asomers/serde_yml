@@ -44,7 +44,6 @@ libyml = "0.0.1"
 rlg = "0.0.4"
 ryu = "1.0.18"
 serde = { version = "1.0.201", features = ["derive"] }
-uuid = { version = "1.8.0", features = ["v4"] }
 
 [dev-dependencies]
 anyhow = "1.0.83"
