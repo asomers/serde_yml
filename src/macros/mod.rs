@@ -1,6 +1,3 @@
-/// The `file_macros` module contains macros related to file operations.
-pub mod macro_file;
-
 /// The `from_number_macros` module contains macros related to converting
 pub mod macro_from_number;
 
