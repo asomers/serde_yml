@@ -1,8 +1,3 @@
-// Copyright notice and licensing information.
-// These lines indicate the copyright of the software and its licensing terms.
-// SPDX-License-Identifier: Apache-2.0 OR MIT indicates dual licensing under Apache 2.0 or MIT licenses.
-// Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
-
 use std::fmt::{self, Display};
 
 /// `Path` represents the path to the current value in the input, like `dependencies.serde.typo1`.

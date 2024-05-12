@@ -1,8 +1,3 @@
-// Copyright notice and licensing information.
-// These lines indicate the copyright of the software and its licensing terms.
-// SPDX-License-Identifier: Apache-2.0 OR MIT indicates dual licensing under Apache 2.0 or MIT licenses.
-// Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
-
 /// A macro for generating ASCII art from text.
 ///
 /// This macro takes a string literal as input and generates ASCII art using the `generate_ascii_art` function.

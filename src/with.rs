@@ -1,8 +1,3 @@
-// Copyright notice and licensing information.
-// These lines indicate the copyright of the software and its licensing terms.
-// SPDX-License-Identifier: Apache-2.0 OR MIT indicates dual licensing under Apache 2.0 or MIT licenses.
-// Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
-
 //! Customizations to use with Serde's `#[serde(with = …)]` attribute.
 
 /// Serialize/deserialize an enum using a YAML map containing one entry in which

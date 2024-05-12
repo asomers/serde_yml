@@ -2,11 +2,6 @@
 // This module provides implementations of the `Debug` trait for various types in the `serde_yml` crate.
 // It allows for customized formatting when debugging `Value`, `Number`, and `Mapping` types.
 
-// Copyright notice and licensing information.
-// These lines indicate the copyright of the software and its licensing terms.
-// SPDX-License-Identifier: Apache-2.0 OR MIT indicates dual licensing under Apache 2.0 or MIT licenses.
-// Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
-
 use crate::mapping::Mapping;
 use crate::value::{Number, Value};
 use std::fmt::{self, Debug, Display};

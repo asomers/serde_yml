@@ -1,8 +1,3 @@
-// Copyright notice and licensing information.
-// These lines indicate the copyright of the software and its licensing terms.
-// SPDX-License-Identifier: Apache-2.0 OR MIT indicates dual licensing under Apache 2.0 or MIT licenses.
-// Copyright © 2024 Serde YML, Seamless YAML Serialization for Rust. All rights reserved.
-
 //! Example modules for demonstrating the usage of the YAML serializer.
 //!
 //! This module contains example modules that demonstrate the usage of the YAML
@@ -22,9 +17,6 @@ pub(crate) mod complex_nested;
 
 /// This module contains the `custom_serialization.rs` example.
 pub(crate) mod custom_serialization;
-
-/// This module contains the `datetime` example.
-pub(crate) mod datetime;
 
 /// This module contains the `enums` example.
 pub(crate) mod enums;
@@ -51,9 +43,6 @@ pub(crate) fn main() {
 
     // Run the example module `custom_serialization`.
     let _ = custom_serialization::main();
-
-    // Run the example module `datetime`.
-    let _ = datetime::main();
 
     // Run the example module `enums`.
     let _ = enums::main();
