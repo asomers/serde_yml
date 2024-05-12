@@ -44,9 +44,6 @@ pub(crate) fn main() {
     // Run the example module `custom_serialization`.
     let _ = custom_serialization::main();
 
-    // Run the example module `datetime`.
-    let _ = datetime::main();
-
     // Run the example module `enums`.
     let _ = enums::main();
 
