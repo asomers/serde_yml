@@ -114,12 +114,6 @@
 #![crate_name = "serde_yml"]
 #![crate_type = "lib"]
 
-use dtt::DateTime; // Import the DateTime type from the dtt crate
-use std::{fs::File, io::Write}; // Import types for file operations
-
-// Define a constant for the log file path
-const LOG_FILE_PATH: &str = "./serde_yml.log";
-
 // Re-export commonly used items from other modules
 pub use crate::de::{from_reader, from_slice, from_str, Deserializer}; // Deserialization functions
 pub use crate::modules::error::{Error, Location, Result}; // Error handling types
@@ -128,9 +122,6 @@ pub use crate::ser::{to_string, to_writer, Serializer, State}; // Serialization 
 pub use crate::value::{
     from_value, to_value, Index, Number, Sequence, Value,
 }; // Value manipulation functions
-
-/// The `generators` module contains functions for generating data.
-pub mod generators;
 
 /// The `macros` module contains functions for generating macros.
 pub mod macros;
@@ -179,50 +170,4 @@ mod private {
     impl Sealed for String {}
     impl Sealed for crate::Value {}
     impl<T> Sealed for &T where T: ?Sized + Sealed {}
-}
-
-/// Run the Serde YML tool.
-pub fn run() -> std::result::Result<(), Box<dyn std::error::Error>> {
-    // Get the current date and time
-    let date = DateTime::new();
-    let current_timestamp = date.iso_8601;
-
-    // Open or create the log file
-    let mut log_file = create_log_file(LOG_FILE_PATH)?;
-
-    // Generate ASCII art for the tool's CLI and print it
-    let ascii_art = macro_ascii!("Serde YML");
-    println!("{}", ascii_art);
-
-    // Log the ASCII art generation event
-    log_event(
-        &mut log_file,
-        &current_timestamp,
-        &format!("ASCII art generated successfully:\n{}", ascii_art),
-    )?;
-
-    // Print welcome message to the user
-    println!("Welcome to Serde YML! 👋");
-    println!("Serde YML is a Rust library that simplifies YAML serialization and deserialization using the popular Serde framework.");
-
-    Ok(())
-}
-
-/// Create a log file at the specified path.
-fn create_log_file(
-    file_path: &str,
-) -> std::result::Result<File, std::io::Error> {
-    let log_file = File::create(file_path)?;
-    Ok(log_file)
-}
-
-/// Log an event with a timestamp and message to the specified log file.
-fn log_event(
-    log_file: &mut File,
-    timestamp: &str,
-    message: &str,
-) -> std::result::Result<(), std::io::Error> {
-    writeln!(log_file, "[{}] {}", timestamp, message)?;
-    log_file.flush()?;
-    Ok(())
 }

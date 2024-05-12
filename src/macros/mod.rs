@@ -1,10 +1,3 @@
-/// A macro for generating ASCII art from text.
-pub mod macro_ascii;
-
-/// The `directory_macros` module contains macros related to directory
-/// operations.
-pub mod macro_directory;
-
 /// The `file_macros` module contains macros related to file operations.
 pub mod macro_file;
 
