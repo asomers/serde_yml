@@ -18,9 +18,6 @@ pub(crate) mod complex_nested;
 /// This module contains the `custom_serialization.rs` example.
 pub(crate) mod custom_serialization;
 
-/// This module contains the `datetime` example.
-pub(crate) mod datetime;
-
 /// This module contains the `enums` example.
 pub(crate) mod enums;
 
